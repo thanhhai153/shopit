@@ -8,7 +8,9 @@
     background: #fff;
     border: 1px solid #ddd;
     border-top: none;
-    display: none;
+    /* display: none; */
+    opacity: 0;
+    visibility: hidden
 }
 #mega_menu a {
     font-size: 0.9em;
@@ -18,6 +20,10 @@
 }
 #mega_menu > li {
     background: #fff;
+}
+#mega_menu > li:hover>a {
+    color: #fff;
+    background:#0098d9;
 }
 #mega_menu > li > a {
     border-top: 1px solid #ddd;
@@ -210,15 +216,18 @@
     display: none;
 }
 .ot-vm-hover:hover #mega_menu {
-    display: block;
+    opacity: 1;
+    visibility: visible
+}
+.header-wrapper:not(.stuck) #mega_menu {
+    -webkit-transition: opacity .25s,visibility .25s;
+    -o-transition: opacity .25s,visibility .25s;
+    transition: opacity .25s,visibility .25s;
 }
 #header.header #mega_menu.active {
     display: block;
 }
 .home.ot-menu-show-home #mega_menu {
-    display: block;
-}
-.ot-vm-hover:hover #mega_menu {
     display: block;
 }
 #header.header.has-sticky .header-wrapper.stuck #mega-menu-wrap:hover #mega_menu:not(.active) {
