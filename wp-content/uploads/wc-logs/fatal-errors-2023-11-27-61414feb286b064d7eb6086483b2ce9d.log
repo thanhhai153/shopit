@@ -1,0 +1,14 @@
+2023-11-27T04:33:02+00:00 CRITICAL syntax error, unexpected token "<", expecting end of file in C:\xampp\htdocs\flatsome\wp-content\themes\flatsome-child\functions.php on line 322
+
+2023-11-27T04:33:09+00:00 CRITICAL syntax error, unexpected token "<", expecting end of file in C:\xampp\htdocs\flatsome\wp-content\themes\flatsome-child\functions.php on line 322
+
+2023-11-27T15:33:19+00:00 CRITICAL Uncaught Error: Using $this when not in object context in C:\xampp\htdocs\flatsome\wp-content\themes\flatsome-child\functions.php:319
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-settings.php(611): include()
+#1 C:\xampp\htdocs\flatsome\wp-config.php(96): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\flatsome\wp-load.php(50): require_once('C:\\xampp\\htdocs...')
+#3 C:\xampp\htdocs\flatsome\wp-admin\admin.php(34): require_once('C:\\xampp\\htdocs...')
+#4 C:\xampp\htdocs\flatsome\wp-admin\edit.php(10): require_once('C:\\xampp\\htdocs...')
+#5 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\themes\flatsome-child\functions.php on line 319
+

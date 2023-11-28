@@ -1,0 +1,79 @@
+2023-11-26T13:53:04+00:00 CRITICAL Uncaught Error: Failed opening required 'custom-product-imfomation-wooc.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\flatsome\wp-content\themes\flatsome-child\functions.php:314
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-settings.php(611): include()
+#1 C:\xampp\htdocs\flatsome\wp-config.php(96): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\flatsome\wp-load.php(50): require_once('C:\\xampp\\htdocs...')
+#3 C:\xampp\htdocs\flatsome\wp-admin\admin-ajax.php(22): require_once('C:\\xampp\\htdocs...')
+#4 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\themes\flatsome-child\functions.php on line 314
+
+2023-11-26T13:56:21+00:00 CRITICAL syntax error, unexpected token "require_once" in C:\xampp\htdocs\flatsome\wp-content\themes\flatsome-child\functions.php on line 317
+
+2023-11-26T14:40:21+00:00 CRITICAL Unclosed '(' in C:\xampp\htdocs\flatsome\wp-content\themes\flatsome-child\pdi-wooc.php on line 2
+
+2023-11-26T14:41:22+00:00 CRITICAL Unclosed '(' in C:\xampp\htdocs\flatsome\wp-content\themes\flatsome-child\pdi-wooc.php on line 2
+
+2023-11-26T14:43:23+00:00 CRITICAL Unclosed '(' in C:\xampp\htdocs\flatsome\wp-content\themes\flatsome-child\pdi-wooc.php on line 2
+
+2023-11-26T14:45:24+00:00 CRITICAL Unclosed '(' in C:\xampp\htdocs\flatsome\wp-content\themes\flatsome-child\pdi-wooc.php on line 2
+
+2023-11-26T14:47:25+00:00 CRITICAL Unclosed '(' in C:\xampp\htdocs\flatsome\wp-content\themes\flatsome-child\pdi-wooc.php on line 2
+
+2023-11-26T14:48:26+00:00 CRITICAL Unclosed '(' in C:\xampp\htdocs\flatsome\wp-content\themes\flatsome-child\pdi-wooc.php on line 2
+
+2023-11-26T14:53:29+00:00 CRITICAL Uncaught TypeError: uasort(): Argument #1 ($array) must be of type array, null given in C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php:121
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php(121): uasort(NULL, Array)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\views\html-product-data-panel.php(43): WC_Meta_Box_Product_Data::get_product_data_tabs()
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php(33): include('C:\\xampp\\htdocs...')
+#3 C:\xampp\htdocs\flatsome\wp-admin\includes\template.php(1456): WC_Meta_Box_Product_Data::output(Object(WP_Post), Array)
+#4 C:\xampp\htdocs\flatsome\wp-admin\edit-form-advanced.php(707): do_meta_boxes(Object(WP_Screen), 'side', Object(WP_Post))
+#5 C:\xampp\htdocs\flatsome\wp-admin\post.php(206): require('C:\\xampp\\htdocs...')
+#6 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php on line 121
+
+2023-11-26T14:57:25+00:00 CRITICAL Uncaught TypeError: uasort(): Argument #1 ($array) must be of type array, null given in C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php:121
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php(121): uasort(NULL, Array)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\views\html-product-data-panel.php(43): WC_Meta_Box_Product_Data::get_product_data_tabs()
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php(33): include('C:\\xampp\\htdocs...')
+#3 C:\xampp\htdocs\flatsome\wp-admin\includes\template.php(1456): WC_Meta_Box_Product_Data::output(Object(WP_Post), Array)
+#4 C:\xampp\htdocs\flatsome\wp-admin\edit-form-advanced.php(707): do_meta_boxes(Object(WP_Screen), 'side', Object(WP_Post))
+#5 C:\xampp\htdocs\flatsome\wp-admin\post.php(206): require('C:\\xampp\\htdocs...')
+#6 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php on line 121
+
+2023-11-26T14:58:26+00:00 CRITICAL Uncaught TypeError: uasort(): Argument #1 ($array) must be of type array, null given in C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php:121
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php(121): uasort(NULL, Array)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\views\html-product-data-panel.php(43): WC_Meta_Box_Product_Data::get_product_data_tabs()
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php(33): include('C:\\xampp\\htdocs...')
+#3 C:\xampp\htdocs\flatsome\wp-admin\includes\template.php(1456): WC_Meta_Box_Product_Data::output(Object(WP_Post), Array)
+#4 C:\xampp\htdocs\flatsome\wp-admin\edit-form-advanced.php(707): do_meta_boxes(Object(WP_Screen), 'side', Object(WP_Post))
+#5 C:\xampp\htdocs\flatsome\wp-admin\post.php(206): require('C:\\xampp\\htdocs...')
+#6 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php on line 121
+
+2023-11-26T14:59:04+00:00 CRITICAL Uncaught TypeError: uasort(): Argument #1 ($array) must be of type array, null given in C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php:121
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php(121): uasort(NULL, Array)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\views\html-product-data-panel.php(43): WC_Meta_Box_Product_Data::get_product_data_tabs()
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php(33): include('C:\\xampp\\htdocs...')
+#3 C:\xampp\htdocs\flatsome\wp-admin\includes\template.php(1456): WC_Meta_Box_Product_Data::output(Object(WP_Post), Array)
+#4 C:\xampp\htdocs\flatsome\wp-admin\edit-form-advanced.php(707): do_meta_boxes(Object(WP_Screen), 'side', Object(WP_Post))
+#5 C:\xampp\htdocs\flatsome\wp-admin\post.php(206): require('C:\\xampp\\htdocs...')
+#6 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php on line 121
+
+2023-11-26T15:00:41+00:00 CRITICAL Uncaught TypeError: call_user_func_array(): Argument #1 ($callback) must be a valid callback, function "bkhost_add_product_imfomation_data_tab" not found or invalid function name in C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php:324
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-includes\plugin.php(205): WP_Hook->apply_filters(Array, Array)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php(71): apply_filters('woocommerce_pro...', Array)
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\views\html-product-data-panel.php(43): WC_Meta_Box_Product_Data::get_product_data_tabs()
+#3 C:\xampp\htdocs\flatsome\wp-content\plugins\woocommerce\includes\admin\meta-boxes\class-wc-meta-box-product-data.php(33): include('C:\\xampp\\htdocs...')
+#4 C:\xampp\htdocs\flatsome\wp-admin\includes\template.php(1456): WC_Meta_Box_Product_Data::output(Object(WP_Post), Array)
+#5 C:\xampp\htdocs\flatsome\wp-admin\edit-form-advanced.php(707): do_meta_boxes(Object(WP_Screen), 'side', Object(WP_Post))
+#6 C:\xampp\htdocs\flatsome\wp-admin\post.php(206): require('C:\\xampp\\htdocs...')
+#7 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php on line 324
+

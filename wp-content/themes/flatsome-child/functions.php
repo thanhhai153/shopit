@@ -311,3 +311,4 @@ function redirect_to_checkout($redirect_url)
 
   return $redirect_url;
 }
+
