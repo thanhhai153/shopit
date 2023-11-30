@@ -1,0 +1,2 @@
+2023-11-29T12:32:05+00:00 CRITICAL Maximum execution time of 120 seconds exceeded in C:\xampp\htdocs\flatsome\wp-includes\Requests\src\Transport\Curl.php on line 205
+

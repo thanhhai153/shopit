@@ -3,8 +3,8 @@ Contributors: wpclever
 Donate link: https://wpclever.net
 Tags: woocommerce, woo, wpc, product, bundle, bundles
 Requires at least: 4.0
-Tested up to: 6.3
-Stable tag: 7.3.2
+Tested up to: 6.4
+Stable tag: 7.3.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,9 @@ If you have created your own language pack, or have an update for an existing on
 5. Almost done! click Save and see the result
 
 == Changelog ==
+
+= 7.3.3 =
+* Updated: Optimized the code
 
 = 7.3.2 =
 * Fixed: Minor vulnerability issue

@@ -326,7 +326,6 @@ function woosb_check_ready($wrap) {
   var exclude_unpurchasable = $products.attr('data-exclude-unpurchasable') ===
       'yes';
   var saved = '';
-  var fix = Math.pow(10, Number(woosb_vars.wc_price_decimals) + 1);
   var is_discount = discount > 0 && discount < 100;
   var is_discount_amount = discount_amount > 0;
   var qty_min = parseFloat($products.attr('data-min'));
@@ -355,7 +354,7 @@ function woosb_check_ready($wrap) {
         var _qty = parseFloat($this.attr('data-qty'));
         var _price = parseFloat($this.attr('data-price'));
 
-        total += woosb_round(_price, woosb_vars.wc_price_decimals) * _qty;
+        total += woosb_round(_price, woosb_vars.price_decimals) * _qty;
 
         if (!is_discount_amount && is_discount) {
           _price *= (100 - discount) / 100;
