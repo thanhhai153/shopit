@@ -12,10 +12,6 @@ Version: 3.0
     /*************** ADD MOBILE ONLY CSS HERE  ***************/
 }
 
-.has-hover .bg,
-.has-hover [class*="image-"] img {
-    height: 182.4px;
-}
 span.amount {
     color: red;
 }

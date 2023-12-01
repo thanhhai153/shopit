@@ -1,0 +1,144 @@
+2023-11-30T02:33:53+00:00 CRITICAL Uncaught TypeError: round(): Argument #1 ($num) must be of type int|float, string given in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php:27
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php(27): round('', 0)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(2297): WPCleverWoosb_Helper::round_price('')
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(1925): WPCleverWoosb->product_data_li(Object(WC_Product_Grouped), Array, true)
+#3 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(324): WPCleverWoosb->ajax_get_search_results('')
+#4 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(348): WP_Hook->apply_filters('', Array)
+#5 C:\xampp\htdocs\flatsome\wp-includes\plugin.php(517): WP_Hook->do_action(Array)
+#6 C:\xampp\htdocs\flatsome\wp-admin\admin-ajax.php(188): do_action('wp_ajax_woosb_g...')
+#7 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php on line 27
+
+2023-11-30T02:33:53+00:00 CRITICAL Uncaught TypeError: round(): Argument #1 ($num) must be of type int|float, string given in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php:27
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php(27): round('', 0)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(2297): WPCleverWoosb_Helper::round_price('')
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(1925): WPCleverWoosb->product_data_li(Object(WC_Product_Grouped), Array, true)
+#3 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(324): WPCleverWoosb->ajax_get_search_results('')
+#4 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(348): WP_Hook->apply_filters('', Array)
+#5 C:\xampp\htdocs\flatsome\wp-includes\plugin.php(517): WP_Hook->do_action(Array)
+#6 C:\xampp\htdocs\flatsome\wp-admin\admin-ajax.php(188): do_action('wp_ajax_woosb_g...')
+#7 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php on line 27
+
+2023-11-30T06:39:34+00:00 CRITICAL Uncaught TypeError: round(): Argument #1 ($num) must be of type int|float, string given in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php:27
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php(27): round('', 0)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(2299): WPCleverWoosb_Helper::round_price('')
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(1927): WPCleverWoosb->product_data_li(Object(WC_Product_Grouped), Array, true)
+#3 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(324): WPCleverWoosb->ajax_get_search_results('')
+#4 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(348): WP_Hook->apply_filters('', Array)
+#5 C:\xampp\htdocs\flatsome\wp-includes\plugin.php(517): WP_Hook->do_action(Array)
+#6 C:\xampp\htdocs\flatsome\wp-admin\admin-ajax.php(188): do_action('wp_ajax_woosb_g...')
+#7 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php on line 27
+
+2023-11-30T06:39:39+00:00 CRITICAL Uncaught TypeError: round(): Argument #1 ($num) must be of type int|float, string given in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php:27
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php(27): round('', 0)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(2299): WPCleverWoosb_Helper::round_price('')
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(1927): WPCleverWoosb->product_data_li(Object(WC_Product_Grouped), Array, true)
+#3 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(324): WPCleverWoosb->ajax_get_search_results('')
+#4 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(348): WP_Hook->apply_filters('', Array)
+#5 C:\xampp\htdocs\flatsome\wp-includes\plugin.php(517): WP_Hook->do_action(Array)
+#6 C:\xampp\htdocs\flatsome\wp-admin\admin-ajax.php(188): do_action('wp_ajax_woosb_g...')
+#7 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php on line 27
+
+2023-11-30T06:42:44+00:00 CRITICAL Uncaught TypeError: round(): Argument #1 ($num) must be of type int|float, string given in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php:27
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php(27): round('', 0)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(2299): WPCleverWoosb_Helper::round_price('')
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(1927): WPCleverWoosb->product_data_li(Object(WC_Product_Grouped), Array, true)
+#3 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(324): WPCleverWoosb->ajax_get_search_results('')
+#4 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(348): WP_Hook->apply_filters('', Array)
+#5 C:\xampp\htdocs\flatsome\wp-includes\plugin.php(517): WP_Hook->do_action(Array)
+#6 C:\xampp\htdocs\flatsome\wp-admin\admin-ajax.php(188): do_action('wp_ajax_woosb_g...')
+#7 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php on line 27
+
+2023-11-30T06:42:44+00:00 CRITICAL Uncaught TypeError: round(): Argument #1 ($num) must be of type int|float, string given in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php:27
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php(27): round('', 0)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(2299): WPCleverWoosb_Helper::round_price('')
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(1927): WPCleverWoosb->product_data_li(Object(WC_Product_Grouped), Array, true)
+#3 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(324): WPCleverWoosb->ajax_get_search_results('')
+#4 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(348): WP_Hook->apply_filters('', Array)
+#5 C:\xampp\htdocs\flatsome\wp-includes\plugin.php(517): WP_Hook->do_action(Array)
+#6 C:\xampp\htdocs\flatsome\wp-admin\admin-ajax.php(188): do_action('wp_ajax_woosb_g...')
+#7 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php on line 27
+
+2023-11-30T06:42:44+00:00 CRITICAL Uncaught TypeError: round(): Argument #1 ($num) must be of type int|float, string given in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php:27
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php(27): round('', 0)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(2299): WPCleverWoosb_Helper::round_price('')
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(1927): WPCleverWoosb->product_data_li(Object(WC_Product_Grouped), Array, true)
+#3 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(324): WPCleverWoosb->ajax_get_search_results('')
+#4 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(348): WP_Hook->apply_filters('', Array)
+#5 C:\xampp\htdocs\flatsome\wp-includes\plugin.php(517): WP_Hook->do_action(Array)
+#6 C:\xampp\htdocs\flatsome\wp-admin\admin-ajax.php(188): do_action('wp_ajax_woosb_g...')
+#7 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php on line 27
+
+2023-11-30T06:50:13+00:00 CRITICAL Uncaught TypeError: round(): Argument #1 ($num) must be of type int|float, string given in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php:27
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php(27): round('', 0)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(2299): WPCleverWoosb_Helper::round_price('')
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(1927): WPCleverWoosb->product_data_li(Object(WC_Product_Grouped), Array, true)
+#3 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(324): WPCleverWoosb->ajax_get_search_results('')
+#4 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(348): WP_Hook->apply_filters('', Array)
+#5 C:\xampp\htdocs\flatsome\wp-includes\plugin.php(517): WP_Hook->do_action(Array)
+#6 C:\xampp\htdocs\flatsome\wp-admin\admin-ajax.php(188): do_action('wp_ajax_woosb_g...')
+#7 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php on line 27
+
+2023-11-30T06:50:35+00:00 CRITICAL Uncaught TypeError: round(): Argument #1 ($num) must be of type int|float, string given in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php:27
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php(27): round('', 0)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(2299): WPCleverWoosb_Helper::round_price('')
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(1927): WPCleverWoosb->product_data_li(Object(WC_Product_Grouped), Array, true)
+#3 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(324): WPCleverWoosb->ajax_get_search_results('')
+#4 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(348): WP_Hook->apply_filters('', Array)
+#5 C:\xampp\htdocs\flatsome\wp-includes\plugin.php(517): WP_Hook->do_action(Array)
+#6 C:\xampp\htdocs\flatsome\wp-admin\admin-ajax.php(188): do_action('wp_ajax_woosb_g...')
+#7 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php on line 27
+
+2023-11-30T06:51:47+00:00 CRITICAL Uncaught TypeError: round(): Argument #1 ($num) must be of type int|float, string given in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php:27
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php(27): round('', 0)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(2299): WPCleverWoosb_Helper::round_price('')
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(1927): WPCleverWoosb->product_data_li(Object(WC_Product_Grouped), Array, true)
+#3 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(324): WPCleverWoosb->ajax_get_search_results('')
+#4 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(348): WP_Hook->apply_filters('', Array)
+#5 C:\xampp\htdocs\flatsome\wp-includes\plugin.php(517): WP_Hook->do_action(Array)
+#6 C:\xampp\htdocs\flatsome\wp-admin\admin-ajax.php(188): do_action('wp_ajax_woosb_g...')
+#7 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php on line 27
+
+2023-11-30T06:51:47+00:00 CRITICAL Uncaught TypeError: round(): Argument #1 ($num) must be of type int|float, string given in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php:27
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php(27): round('', 0)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(2299): WPCleverWoosb_Helper::round_price('')
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(1927): WPCleverWoosb->product_data_li(Object(WC_Product_Grouped), Array, true)
+#3 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(324): WPCleverWoosb->ajax_get_search_results('')
+#4 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(348): WP_Hook->apply_filters('', Array)
+#5 C:\xampp\htdocs\flatsome\wp-includes\plugin.php(517): WP_Hook->do_action(Array)
+#6 C:\xampp\htdocs\flatsome\wp-admin\admin-ajax.php(188): do_action('wp_ajax_woosb_g...')
+#7 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php on line 27
+
+2023-11-30T06:51:57+00:00 CRITICAL Uncaught TypeError: round(): Argument #1 ($num) must be of type int|float, string given in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php:27
+Stack trace:
+#0 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php(27): round('', 0)
+#1 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(2299): WPCleverWoosb_Helper::round_price('')
+#2 C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-woosb.php(1927): WPCleverWoosb->product_data_li(Object(WC_Product_Grouped), Array, true)
+#3 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(324): WPCleverWoosb->ajax_get_search_results('')
+#4 C:\xampp\htdocs\flatsome\wp-includes\class-wp-hook.php(348): WP_Hook->apply_filters('', Array)
+#5 C:\xampp\htdocs\flatsome\wp-includes\plugin.php(517): WP_Hook->do_action(Array)
+#6 C:\xampp\htdocs\flatsome\wp-admin\admin-ajax.php(188): do_action('wp_ajax_woosb_g...')
+#7 {main}
+  thrown in C:\xampp\htdocs\flatsome\wp-content\plugins\woo-product-bundle\includes\class-helper.php on line 27
+

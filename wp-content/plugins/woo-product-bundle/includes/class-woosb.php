@@ -1882,7 +1882,8 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
 				$query_args = [
 					'is_woosb'       => true,
 					'post_type'      => 'product',
-					'post_status'    => [ 'publish', 'private' ],
+					// 'post_status'    => [ 'publish', 'private' ],
+					'post_status'    => [ 'publish','protect', 'private' ],
 					's'              => $keyword,
 					'posts_per_page' => WPCleverWoosb_Helper()->get_setting( 'search_limit', 10 )
 				];
@@ -1943,7 +1944,6 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
 			} else {
 				echo '<ul><span>' . sprintf( esc_html__( 'No results found for "%s"', 'woo-product-bundle' ), $keyword ) . '</span></ul>';
 			}
-
 			wp_die();
 		}
 
