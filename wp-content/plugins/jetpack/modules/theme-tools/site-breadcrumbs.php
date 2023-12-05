@@ -13,7 +13,7 @@
  */
 
 /**
- * Echos a set of breadcrumbs.
+ * Echos a set of divider.
  *
  * Themes can call this function where the breadcrumbs should be outputted.
  */

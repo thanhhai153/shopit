@@ -1,0 +1,4 @@
+2023-12-05T04:44:10+00:00 CRITICAL syntax error, unexpected token "<", expecting end of file in C:\laragon\www\shopit\wp-content\themes\flatsome-child\functions.php on line 319
+
+2023-12-05T04:46:24+00:00 CRITICAL syntax error, unexpected token "<", expecting end of file in C:\laragon\www\shopit\wp-content\themes\flatsome\template-parts\header\header-wrapper.php on line 19
+
