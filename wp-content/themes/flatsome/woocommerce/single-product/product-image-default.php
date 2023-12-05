@@ -10,9 +10,10 @@
  * happen. When this occurs the version of the template file will be bumped and
  * the readme will list any important changes.
  *
- * @see     https://docs.woocommerce.com/document/template-structure/
- * @package WooCommerce/Templates
- * @version 3.5.1
+ * @see              https://docs.woocommerce.com/document/template-structure/
+ * @package          WooCommerce/Templates
+ * @version          7.8.0
+ * @flatsome-version 3.17.2
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -42,7 +43,7 @@ $wrapper_classes   = apply_filters( 'woocommerce_single_product_image_gallery_cl
 </div>
 
 <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ) ); ?>" data-columns="<?php echo esc_attr( $columns ); ?>" style="opacity: 0; transition: opacity .25s ease-in-out;">
-	<figure class="woocommerce-product-gallery__wrapper">
+	<div class="woocommerce-product-gallery__wrapper">
 		<?php
 		if ( $product->get_image_id() ) {
 			$html  = flatsome_wc_get_gallery_image_html( $post_thumbnail_id, true );
@@ -56,6 +57,6 @@ $wrapper_classes   = apply_filters( 'woocommerce_single_product_image_gallery_cl
 
 		do_action( 'woocommerce_product_thumbnails' );
 		?>
-	</figure>
+	</div>
 </div>
 </div>

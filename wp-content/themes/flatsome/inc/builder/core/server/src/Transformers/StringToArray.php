@@ -44,7 +44,7 @@ class StringToArray extends Transformer {
         if ( $shortcode['compile'] ) {
           $item['children'] = $this->transform( $content );
         } else {
-          $item['content'] = ux_builder_trim( $content );
+          $item['content'] = trim( $content );
         }
       }
 

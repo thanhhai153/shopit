@@ -10,9 +10,10 @@
  * happen. When this occurs the version of the template file will be bumped and
  * the readme will list any important changes.
  *
- * @see       https://docs.woocommerce.com/document/template-structure/
- * @package   WooCommerce/Templates
- * @version     3.9.0
+ * @see              https://docs.woocommerce.com/document/template-structure/
+ * @package          WooCommerce/Templates
+ * @version          3.9.0
+ * @flatsome-version 3.16.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,13 +30,13 @@ if ( $type == 'grid' ) $type = 'row';
  if ( get_theme_mod('category_force_image_height' ) ) $repeater_classes[] = 'has-equal-box-heights';
  if ( get_theme_mod('equalize_product_box' ) ) $repeater_classes[] = 'equalize-box';
 
-$repater['type']         = $type;
-$repater['columns']      = get_theme_mod( 'related_products_pr_row', 4 );
-$repater['columns__md']  = get_theme_mod( 'related_products_pr_row_tablet', 3 );
-$repater['columns__sm']  = get_theme_mod( 'related_products_pr_row_mobile', 2 );
-$repater['class']        = implode( ' ', $repeater_classes );
-$repater['slider_style'] = 'reveal';
-$repater['row_spacing']  = 'small';
+$repeater['type']         = $type;
+$repeater['columns']      = get_theme_mod( 'related_products_pr_row', 4 );
+$repeater['columns__md']  = get_theme_mod( 'related_products_pr_row_tablet', 3 );
+$repeater['columns__sm']  = get_theme_mod( 'related_products_pr_row_mobile', 2 );
+$repeater['class']        = implode( ' ', $repeater_classes );
+$repeater['slider_style'] = 'reveal';
+$repeater['row_spacing']  = 'small';
 
 
 if ( $related_products ) : ?>
@@ -53,21 +54,18 @@ if ( $related_products ) : ?>
 		<?php endif; ?>
 
 
-	<?php get_flatsome_repeater_start( $repater ); ?>
+	<?php get_flatsome_repeater_start( $repeater ); ?>
 
-		<?php foreach ( $related_products as $related_product ) : ?>
+		<?php foreach ( $related_products as $related_product ) :
+			$post_object = get_post( $related_product->get_id() );
 
-					<?php
-					$post_object = get_post( $related_product->get_id() );
+			setup_postdata( $GLOBALS['post'] =& $post_object ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited, Squiz.PHP.DisallowMultipleAssignments.Found
 
-					setup_postdata( $GLOBALS['post'] =& $post_object ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited, Squiz.PHP.DisallowMultipleAssignments.Found
+			wc_get_template_part( 'content', 'product' );
+		endforeach;
+		?>
 
-					wc_get_template_part( 'content', 'product' );
-					?>
-
-		<?php endforeach; ?>
-
-		<?php get_flatsome_repeater_end( $repater ); ?>
+		<?php get_flatsome_repeater_end( $repeater ); ?>
 
 	</div>
 

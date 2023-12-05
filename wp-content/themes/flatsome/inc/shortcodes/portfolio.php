@@ -143,11 +143,11 @@ function flatsome_portfolio_shortcode($atts, $content = null, $tag = '' ) {
   ?>
   <div class="container mb-half">
   <ul class="nav nav-<?php echo $filter;?> nav-<?php echo $filter_align ;?> nav-<?php echo $filter_nav;?> nav-uppercase filter-nav">
-    <li class="active"><a href="#" data-filter="[data-id]"><?php echo __('All','flatsome'); ?></a></li>
+    <li class="active"><a href="#" data-filter="*"><?php echo __('All','flatsome'); ?></a></li>
     <?php
       $tax_terms = get_terms('featured_item_category');
       foreach ($tax_terms as $key => $value) {
-         ?><li><a href="#" data-filter="[data-id*='<?php echo $value->name; ?>']"><?php echo $value->name; ?></a></li><?php
+         ?><li><a href="#" data-filter="[data-terms*='<?php echo "&quot;" . $value->name . "&quot;"; ?>']"><?php echo $value->name; ?></a></li><?php
       }
     ?>
   </ul>
@@ -169,6 +169,7 @@ $repeater['slider_nav_color'] = $slider_nav_color;
 $repeater['slider_nav_position'] = $slider_nav_position;
 $repeater['slider_bullets'] = $slider_bullets;
 $repeater['auto_slide'] = $auto_slide;
+$repeater['infinitive'] = $infinitive;
 $repeater['row_spacing'] = $col_spacing;
 $repeater['row_width'] = $width;
 $repeater['columns'] = $columns;
@@ -248,8 +249,7 @@ get_flatsome_repeater_start($repeater);
               if($grid[$current]['size']) $image_size = $grid[$current]['size'];
           }
 
-          ?>
-          <div class="<?php echo implode(' ', $classes_col); ?>" data-id="<?php  echo strip_tags( get_the_term_list( get_the_ID(), 'featured_item_category', "",", " ) );?>" <?php echo $animate; ?>>
+          ?><div class="<?php echo implode(' ', $classes_col); ?>" data-terms="<?php echo strip_tags( get_the_term_list( get_the_ID(), 'featured_item_category', "[&quot;", "&quot;,&quot;", "&quot;]" ) ); ?>" <?php echo $animate; ?>>
           <div class="col-inner" <?php echo get_shortcode_inline_css($css_col); ?>>
           <a href="<?php echo $link; ?>" class="plain <?php echo $has_lightbox; ?>">
           <div class="<?php echo implode(' ', $classes_box); ?>">
@@ -273,8 +273,7 @@ get_flatsome_repeater_start($repeater);
            </div>
            </a>
            </div>
-           </div>
-          <?php
+           </div><?php
           endwhile;
           endif;
           wp_reset_query();

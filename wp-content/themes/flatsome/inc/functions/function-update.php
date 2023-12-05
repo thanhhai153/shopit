@@ -1,395 +1,406 @@
 <?php
+/**
+ * Flatsome Update Functions
+ *
+ * @author  UX Themes
+ * @package Flatsome/Functions
+ */
 
 /**
- * Normalizes the theme directory name.
+ * Inject update data for Flatsome to `_site_transient_update_themes`.
+ * The `package` property is a temporary URL which will be replaced with
+ * an actual URL to a zip file in the `upgrader_package_options` hook when
+ * WordPress runs the upgrader.
  *
- * @return string
+ * @param array $transient The pre-saved value of the `update_themes` site transient.
+ * @return array
  */
-function flatsome_theme_key( $slug = null ) {
-  if ( empty( $slug ) ) {
-    $slug = basename( get_template_directory() );
-  }
 
-  $slug = trim( $slug );
-  $slug = preg_replace( '/[,.\s]+/', '-', $slug );
-  $slug = strtolower( $slug );
+function flatsome_get_update_info( $transient ) {
+	static $latest_version;
 
-  return $slug;
+	if ( ! isset( $transient->checked ) ) {
+		return $transient;
+	}
+
+	$theme    = wp_get_theme( get_template() );
+	$template = $theme->get_template();
+	$version  = $theme->get( 'Version' );
+
+	$update_details = array(
+		'theme'       => $template,
+		'new_version' => $version,
+		'url'         => add_query_arg(
+			array(
+				'version' => $version,
+			),
+			esc_url( admin_url( 'admin.php?page=flatsome-version-info' ) )
+		),
+		'package'     => add_query_arg(
+			array(
+				'flatsome_version'  => $version,
+				'flatsome_download' => true,
+			),
+			esc_url( admin_url( 'admin.php?page=flatsome-panel' ) )
+		),
+	);
+
+	if ( empty( $latest_version ) ) {
+		$cache = get_option( 'flatsome_update_cache' );
+		$now   = time();
+
+		if (
+			! empty( $cache['version'] ) &&
+			! empty( $cache['last_checked'] ) &&
+			$now - ( (int) $cache['last_checked'] ) < 300
+		) {
+			$latest_version = $cache['version'];
+		} else {
+			$result         =  flatsome_envato_wupdates()->registration->get_latest_version();
+			$latest_version = is_string( $result ) ? $result : $version;
+
+			update_option(
+				'flatsome_update_cache',
+				array(
+					'last_checked' => $now,
+					'version'      => $latest_version,
+				)
+			);
+		}
+	}
+
+	if ( version_compare( $version, $latest_version, '<' ) ) {
+		$update_details['new_version'] = $latest_version;
+		$update_details['url']         = add_query_arg( 'version', $latest_version, $update_details['url'] );
+		$update_details['package']     = add_query_arg( 'flatsome_version', $latest_version, $update_details['package'] );
+		$transient->response[ $template ] = $update_details;
+	} else {
+		$transient->no_update[ $template ] = $update_details;
+	}
+	
+	return $transient;
 }
-
-/* Check if support is expired */
-function flatsome_is_support_expired() {
-  $slug = flatsome_theme_key();
-  $date = date('m/d/Y h:i:s a', time());
-
-  $purchase_code   = sanitize_text_field( get_option( $slug . '_wup_purchase_code', '' ) );
-  $supported_until = get_option( $slug . '_wup_supported_until', '' );
-
-  if ( ! empty( $purchase_code ) && strtotime( $date ) > strtotime( $supported_until ) ) {
-    return true;
-  }
-}
+add_filter( 'pre_set_site_transient_update_themes', 'flatsome_get_update_info', 1, 99999 );
+add_filter( 'pre_set_transient_update_themes', 'flatsome_get_update_info', 1, 99999 );
 
 /**
- * Check if support time is invalid.
+ * Get a fresh package URL before running the WordPress upgrader.
  *
- * @param string $support_ends Support end timestamp.
- *
- * @return bool True if invalid false otherwise.
+ * @param array $options Options used by the upgrader.
+ * @return array
  */
-function flatsome_is_invalid_support_time( $support_ends ) {
-	$array = array_map( 'trim', explode( ',', $support_ends ) );
+function flatsome_upgrader_package_options( $options ) {
+	$package = $options['package'];
 
-	return isset( $array[1] ) && $array[1] == 1970 ? true : false;
+	if ( false !== strrpos( $package, 'flatsome_download' ) ) {
+		parse_str( wp_parse_url( $package, PHP_URL_QUERY ), $vars );
+
+		if ( isset( $vars['flatsome_version'] ) ) {
+			$version = $vars['flatsome_version'];
+			$package = flatsome_envato_wupdates()->registration->get_download_url( $version );
+
+			if ( is_wp_error( $package ) ) {
+				return $options;
+			}
+
+			$options['package'] = $package;
+		}
+	}
+
+	return $options;
+}
+add_filter( 'upgrader_package_options', 'flatsome_upgrader_package_options', 9 );
+
+/**
+ * Disables update check for Flatsome in the WordPress themes repo.
+ *
+ * @param array  $request An array of HTTP request arguments.
+ * @param string $url The request URL.
+ * @return array
+ */
+function flatsome_update_check_request_args( $request, $url ) {
+	if ( false !== strpos( $url, '//api.wordpress.org/themes/update-check/1.1/' ) ) {
+		$data     = json_decode( $request['body']['themes'] );
+		$template = get_template();
+
+		unset( $data->themes->$template );
+
+		$request['body']['themes'] = wp_json_encode( $data );
+	}
+	return $request;
+}
+add_filter( 'http_request_args', 'flatsome_update_check_request_args', 5, 2 );
+
+final class Flatsome_WUpdates extends Flatsome_Base_Registration
+{
+
+    /**
+	 * Setup instance.
+	 *
+	 * @param UxThemes_API $api The UX Themes API instance.
+	 */
+	public function __construct( UxThemes_API $api ) {
+		parent::__construct( $api, 'flatsome_wupdates' );
+
+	}
+
+	/**
+	 * Unregisters theme.
+	 *
+	 * @return array|WP_error
+	 */
+	public function unregister() {
+		$this->delete_options();
+		return array();
+	}
+
+	/**
+	 * Get latest Flatsome version.
+	 *
+	 * @return string|WP_error
+	 */
+	public function get_latest_version() {
+		$code = $this->get_code();
+
+		if ( empty( $code ) ) {
+			return new WP_Error( 'missing-purchase-code', __( 'Missing purchase code.', 'flatsome' ) );
+		}
+
+		$result = $this->send_request( "/update/check", 'wupdates-latest-version' );
+		
+		if ( is_wp_error( $result ) ) {
+			$statuses = array( 400, 403, 404, 409, 410, 423 );
+			if ( in_array( (int) $result->get_error_code(), $statuses, true ) ) {
+				$this->set_errors( array( $result->get_error_message() ) );
+			}
+			return $result;
+		} else {
+			wp_clear_scheduled_hook( 'flatsome_scheduled_registration' );
+			wp_schedule_single_event( time() + HOUR_IN_SECONDS, 'flatsome_scheduled_registration' );
+			$this->set_errors( array() );
+		}
+
+		if ( empty( $result['version'] ) ) {
+			return new WP_Error( 'missing-version', __( 'No version received.', 'flatsome' ) );
+		}
+
+		if ( ! is_string( $result['version'] ) ) {
+			return new WP_Error( 'invalid-version', __( 'Invalid version received.', 'flatsome' ) );
+		}
+
+		return $result['version'];
+	}
+
+	/**
+	 * Get a temporary download URL.
+	 *
+	 * @param string $version Version number to download.
+	 * @return string|WP_error
+	 */
+	public function get_download_url( $version ) {
+		$code = $this->get_code();
+
+		if ( empty( $code ) ) {
+			return new WP_Error( 'missing-purchase-code', __( 'Missing purchase code.', 'flatsome' ) );
+		}
+
+		$result = $this->send_request( "/update/check", 'download-url' );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		if ( empty( $result['url'] ) ) {
+			return new WP_Error( 'missing-url', __( 'No URL received.', 'flatsome' ) );
+		}
+
+		if ( ! is_string( $result['url'] ) ) {
+			return new WP_Error( 'invalid-url', __( 'Invalid URL received.', 'flatsome' ) );
+		}
+
+		return $result['url'];
+	}
+	public function get_code() {
+		return get_option( flatsome_theme_key() . '_wup_purchase_code', '' );
+	}
+	public function send_request( $path, $context = null, $args = array() ) {
+		$args = array_merge_recursive( $args, array(
+			'timeout' => 60,
+			'headers' => array(
+				'Referer' => $this->get_site_url(),
+			),
+		) );
+
+		$url      = esc_url_raw( 'https://wupdates.net/wp-json/lic' . $path );
+		$response = wp_remote_request( $url, $args );
+		$status   = wp_remote_retrieve_response_code( $response );
+		$headers  = wp_remote_retrieve_headers( $response );
+		$body     = wp_remote_retrieve_body( $response );
+		$data     = (array) json_decode( $body, true );
+
+		if ( is_wp_error( $response ) ) {
+			return $this->get_error( $response, $context, $data );
+		}
+
+		if ( $status === 429 ) {
+			if ( isset( $headers['x-ratelimit-reset'] ) ) {
+				$data['retry-after'] = (int) $headers['x-ratelimit-reset'];
+			} elseif ( isset( $headers['retry-after'] ) ) {
+				$data['retry-after'] = time() + ( (int) $headers['retry-after'] );
+			}
+		}
+
+		if ( $status !== 200 ) {
+			$error = isset( $data['message'] )
+				? new WP_Error( $status, $data['message'], $data )
+				// translators: %d: The status code.
+				: new WP_Error( $status, sprintf( __( 'Sorry, an error occurred while accessing the API. Error %d', 'flatsome' ), $status ), $data );
+
+			return $this->get_error( $error, $context, $data );
+		}
+
+		return $data;
+	}
+	protected function get_site_url() {
+		global $wpdb;
+
+		$row = $wpdb->get_row( "SELECT option_value FROM $wpdb->options WHERE option_name = 'siteurl' LIMIT 1" );
+
+		if ( is_object( $row ) ) {
+			return $row->option_value;
+		}
+
+		return '';
+	}
+	/**
+	 * Returns a proper error for a HTTP status code.
+	 *
+	 * @param WP_Error $error   The original error.
+	 * @param string   $context A context.
+	 * @param array    $data    Optional data.
+	 * @return WP_Error
+	 */
+	public function get_error( $error, $context = null, $data = array() ) {
+		$status        = (int) $error->get_error_code();
+		$account_attrs = ' href="' . esc_url_raw( UXTHEMES_ACCOUNT_URL ) . '" target="_blank" rel="noopener noreferrer"';
+
+		switch ( $status ) {
+			case 400:
+				if ( $context === 'register' ) {
+					return new WP_Error( $status, __( 'Your purchase code is malformed.', 'flatsome' ), $data );
+				}
+				if ( $context === 'envato-register' ) {
+					return new WP_Error( $status, __( 'Sorry, an error occurred. Please try again.', 'flatsome' ), $data );
+				}
+				if ( $context === 'latest-version' ) {
+					return new WP_Error( $status, __( 'Flatsome was unable to get the latest version. Your site might have changed domain after you registered it.', 'flatsome' ), $data );
+				}
+				return $error;
+			case 403:
+				if ( $context === 'latest-version' ) {
+					return new WP_Error( $status, __( 'Flatsome was unable to get the latest version because the purchase code has not been verified yet. Please re-register it in order to receive updates.', 'flatsome' ), $data );
+				}
+				return $error;
+			case 404:
+				if ( $context === 'register' || $context === 'envato-register' || $context === 'wupdates-register' ) {
+					return new WP_Error( $status, __( 'The purchase code is malformed or does not belong to a Flatsome sale.', 'flatsome' ), $data );
+				}
+				if ( $context === 'unregister' ) {
+					// translators: %s: License manager link attributes.
+					return new WP_Error( $status, sprintf( __( 'The registration was not found for <a%s>your account</a>. It was only deleted on this site.', 'flatsome' ), $account_attrs ), $data );
+				}
+				if ( $context === 'latest-version' ) {
+					// translators: %s: License manager link attributes.
+					return new WP_Error( $status, sprintf( __( 'Flatsome was unable to get the latest version. Your registration might have been deleted from <a%s>your account</a>.', 'flatsome' ), $account_attrs ), $data );
+				}
+				if ( $context === 'wupdates-latest-version' ) {
+					return new WP_Error( $status, __( 'Flatsome was unable to get the latest version. Your purchase code is malformed.', 'flatsome' ), $data );
+				}
+				return $error;
+			case 409:
+				if ( $context === 'wupdates' ) {
+					// translators: %s: License manager link attributes.
+					return new WP_Error( $status, sprintf( __( 'Your purchase code has been used on too many sites. Please go to <a%s>your account</a> and manage your licenses.', 'flatsome' ), $account_attrs ), $data );
+				}
+				// translators: %s: License manager link attributes.
+				return new WP_Error( $status, sprintf( __( 'The purchase code is already registered on another site. Please go to <a%s>your account</a> and manage your licenses.', 'flatsome' ), $account_attrs ), $data );
+			case 410:
+				if ( $context === 'register' || $context === 'envato-register' || $context === 'latest-version' ) {
+					return new WP_Error( $status, __( 'Your purchase code has been blocked. Please contact support to resolve the issue.', 'flatsome' ), $data );
+				}
+				if ( $context === 'wupdates-register' ) {
+					return new WP_Error( $status, __( 'The purchase code does not belong to a Flatsome sale.', 'flatsome' ), $data );
+				}
+				if ( $context === 'wupdates-latest-version' ) {
+					return new WP_Error( $status, __( 'Flatsome was unable to get the latest version. The purchase code does not belong to a Flatsome sale.', 'flatsome' ), $data );
+				}
+				return new WP_Error( $status, __( 'The requested resource no longer exists.', 'flatsome' ), $data );
+			case 417:
+				return new WP_Error( $status, __( 'No domain was sent with the request.', 'flatsome' ), $data );
+			case 422:
+				return new WP_Error( $status, __( 'Unable to parse the domain for your site.', 'flatsome' ), $data );
+			case 423:
+				if ( $context === 'register' || $context === 'envato-register' || $context === 'latest-version' || $context === 'wupdates-latest-version' || $context === 'wupdates' ) {
+					return new WP_Error( $status, __( 'Your purchase code has been locked. Please contact support to resolve the issue.', 'flatsome' ), $data );
+				}
+				return new WP_Error( $status, __( 'The requested resource has been locked.', 'flatsome' ), $data );
+			case 429:
+				return new WP_Error( $status, __( 'Sorry, the API is overloaded.', 'flatsome' ), $data );
+			case 503:
+				return new WP_Error( $status, __( 'Sorry, the API is unavailable at the moment.', 'flatsome' ), $data );
+			default:
+				return $error;
+		}
+	}
 }
 
-/* Check if theme is enabled */
-function flatsome_is_theme_enabled(){
-  if ( flatsome_envato()->is_registered() ) {
-    return true;
-  }
-  $slug = flatsome_theme_key();
-  $purchase_code = sanitize_text_field( get_option( $slug . '_wup_purchase_code', '' ) );
-  if($purchase_code){
-    return true;
-  }
-  return false;
+final class WUpdates_Flatsome_Envato {
+
+	/**
+	 * The single class instance.
+	 *
+	 * @var object
+	 */
+	private static $instance = null;
+
+	/**
+	 * The registration instance.
+	 *
+	 * @var Flatsome_Base_Registration
+	 */
+	public $registration;
+
+	/**
+	 * Setup instance properties.
+	 */
+	private function __construct() {
+		$api = new UxThemes_API();
+		
+		$this->registration = new Flatsome_WUpdates( $api );
+	}
+
+	/**
+	 * Checks whether this site is registered or not.
+	 *
+	 * @return boolean
+	 */
+	public function is_registered() {
+		return $this->registration->is_registered();
+	}
+
+	/**
+	 * Main Flatsome_Envato instance
+	 *
+	 * @return Flatsome_Envato
+	 */
+	public static function get_instance() {
+		if ( is_null( self::$instance ) ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
 }
 
-/* Automagical updates */
-function wupdates_check_JQ9eJ( $transient ) {
-  // Nothing to do here if the checked transient entry is empty
-  if ( empty( $transient->checked ) ) {
-    return $transient;
-  }
-
-  // Let's start gathering data about the theme
-  // First get the theme directory name (the theme slug - unique)
-  $slug = basename( get_template_directory() );
-  // Then WordPress version
-  include( ABSPATH . WPINC . '/version.php' );
-  $http_args = array (
-    'body' => array(
-      'slug' => $slug,
-      'url' => home_url(), //the site's home URL
-      'version' => 0,
-      'locale' => get_locale(),
-      'phpv' => phpversion(),
-      'child_theme' => is_child_theme(),
-      'data' => null, //no optional data is sent by default
-    ),
-    'user-agent' => 'WordPress/' . $wp_version . '; ' . home_url()
-  );
-
-  // If the theme has been checked for updates before, get the checked version
-  if ( isset( $transient->checked[ $slug ] ) && $transient->checked[ $slug ] ) {
-    $http_args['body']['version'] = $transient->checked[ $slug ];
-  }
-
-  // Use this filter to add optional data to send
-  // Make sure you return an associative array - do not encode it in any way
-  $theme_key     = flatsome_theme_key();
-  $optional_data = apply_filters( 'wupdates_call_data_request', $http_args['body']['data'], $theme_key, $http_args['body']['version'] );
-
-  // Encrypting optional data with private key, just to keep your data a little safer
-  // You should not edit the code bellow
-  $optional_data = json_encode( $optional_data );
-  $w=array();$re="";$s=array();$sa=md5('9bbe8289465e1493f734035eb68388eff8573724');
-  $l=strlen($sa);$d=$optional_data;$ii=-1;
-  while(++$ii<256){$w[$ii]=ord(substr($sa,(($ii%$l)+1),1));$s[$ii]=$ii;} $ii=-1;$j=0;
-  while(++$ii<256){$j=($j+$w[$ii]+$s[$ii])%255;$t=$s[$j];$s[$ii]=$s[$j];$s[$j]=$t;}
-  $l=strlen($d);$ii=-1;$j=0;$k=0;
-  while(++$ii<$l){$j=($j+1)%256;$k=($k+$s[$j])%255;$t=$w[$j];$s[$j]=$s[$k];$s[$k]=$t;
-  $x=$s[(($s[$j]+$s[$k])%255)];$re.=chr(ord($d[$ii])^$x);}
-  $optional_data=bin2hex($re);
-
-  // Save the encrypted optional data so it can be sent to the updates server
-  $http_args['body']['data'] = $optional_data;
-
-  // Check for an available update
-  $url = $http_url = set_url_scheme( 'https://wupdates.com/wp-json/wup/v1/themes/check_version/JQ9eJ', 'http' );
-  if ( $ssl = wp_http_supports( array( 'ssl' ) ) ) {
-    $url = set_url_scheme( $url, 'https' );
-  }
-
-  $raw_response = wp_remote_post( $url, $http_args );
-  if ( $ssl && is_wp_error( $raw_response ) ) {
-    $raw_response = wp_remote_post( $http_url, $http_args );
-  }
-  // We stop in case we haven't received a proper response
-  if ( is_wp_error( $raw_response ) || 200 != wp_remote_retrieve_response_code( $raw_response ) ) {
-    return $transient;
-  }
-
-  $response = (array) json_decode($raw_response['body']);
-  if ( ! empty( $response ) ) {
-    // You can use this action to show notifications or take other action
-    do_action( 'wupdates_before_response', $response, $transient );
-    if ( isset( $response['allow_update'] ) && $response['allow_update'] && isset( $response['transient'] ) ) {
-      $transient->response[ $slug ] = (array) $response['transient'];
-    }
-    do_action( 'wupdates_after_response', $response, $transient );
-  }
-
-  return $transient;
+function flatsome_envato_wupdates() {
+	return WUpdates_Flatsome_Envato::get_instance();
 }
-add_filter( 'pre_set_site_transient_update_themes', 'wupdates_check_JQ9eJ' );
-
-/* Only allow theme updates with a valid Envato purchase code */
-function wupdates_add_purchase_code_field_JQ9eJ( $themes ) {
-  $output = '';
-  // First get the theme directory name (the theme slug - unique)
-  $template = get_template();
-  $slug     = flatsome_theme_key();
-
-  if ( ! isset( $themes[ $template ]['tags'] ) ) {
-    $themes[ $template ]['tags'] = '';
-  }
-
-  if ( ! is_multisite() && isset( $themes[ $template ] ) ) {
-    $output .= "<br/><br/>"; //put a little space above
-
-
-    //get errors so we can show them
-    $errors = get_option( $slug . '_wup_errors', array() );
-    delete_option( $slug . '_wup_errors' ); //delete existing errors as we will handle them next
-
-    //check if we have a purchase code saved already
-    $purchase_code = sanitize_text_field( get_option( $slug . '_wup_purchase_code', '' ) );
-
-    if ( ! empty( $purchase_code ) ) {
-      $output .= flatsome_envato()->admin()->render_message_form();
-    } else {
-      $output .= flatsome_envato()->admin()->render_registration_form();
-      $themes[ $template ]['tags'] .= $output;
-      return $themes;
-    }
-
-    //in case there is an update available, tell the user that it needs a valid purchase code
-    if ( empty( $purchase_code ) && ! empty( $themes[ $template ]['hasUpdate'] ) ) {
-      $output .= '<div class="notice notice-error notice-alt notice-large">' . __( 'A <strong>valid purchase code</strong> is required for automatic updates.', 'wupdates' ) . '</div>';
-    }
-    //output errors and notifications
-    if ( ! empty( $errors ) ) {
-      foreach ( $errors as $key => $error ) {
-        $output .= '<div class="error"><p>' . wp_kses_post( $error ) . '</p></div>';
-      }
-    }
-    if ( ! empty( $purchase_code ) ) {
-      if ( ! empty( $errors ) ) {
-        //since there is already a purchase code present - notify the user
-        $output .= '<div class="notice notice-warning notice-alt"><p>' . esc_html__( 'Purchase code not updated. We will keep the existing one.', 'wupdates' ) . '</p></div>';
-      } else {
-        //this means a valid purchase code is present and no errors were found
-        $output .= '<div class="notice notice-success notice-alt notice-large">' . __( 'Your <strong>purchase code is valid</strong>. Thank you! Enjoy one-click automatic updates.', 'wupdates' ) . '</div>';
-      }
-    }
-    $purchase_code_key = esc_attr( strtolower( str_replace( array(' ', '.'), '_', $slug ) ) ) . '_wup_purchase_code';
-    $output .= '<form class="wupdates_purchase_code" action="" method="post">' .
-      '<input type="hidden" name="wupdates_pc_theme" value="' . esc_attr( $slug ) . '" />' .
-      '<input type="text" id="' . $purchase_code_key . '" name="' . $purchase_code_key . '"
-              value="' . esc_attr( $purchase_code ) . '" placeholder="' . esc_html__( 'Purchase code ( e.g. 9g2b13fa-10aa-2267-883a-9201a94cf9b5 )', 'wupdates' ) . '" style="width:100%"/>' .
-      '<p>' . __( 'Enter your purchase code.', 'wupdates' ) . '</p>' .
-      '<p class="theme-description">' .
-        __( 'Find out how to <a href="https://help.market.envato.com/hc/en-us/articles/202822600-Where-Is-My-Purchase-Code-" target="_blank">get your purchase code</a>.', 'wupdates' ) .
-        '</p>
-      </form>';
-  }
-
-  $themes[ $template ]['tags'] .= $output;
-
-  return $themes;
-}
-add_filter( 'wp_prepare_themes_for_js' ,'wupdates_add_purchase_code_field_JQ9eJ' );
-
-/* Handle the purchase code input for multisite installations */
-function wupdates_ms_theme_list_purchase_code_field_JQ9eJ( $theme, $r ) {
-  $output = '<br/>';
-  $slug = flatsome_theme_key( $theme->get_template() );
-  //get errors so we can show them
-  $errors = get_option( $slug . '_wup_errors', array() );
-  delete_option( $slug . '_wup_errors' ); //delete existing errors as we will handle them next
-
-  //check if we have a purchase code saved already
-  $purchase_code = sanitize_text_field( get_option( $slug . '_wup_purchase_code', '' ) );
-  //in case there is an update available, tell the user that it needs a valid purchase code
-  if ( empty( $purchase_code ) ) {
-    $output .=  '<p>' . __( 'A <strong>valid purchase code</strong> is required for automatic updates.', 'wupdates' ) . '</p>';
-  }
-  //output errors and notifications
-  if ( ! empty( $errors ) ) {
-    foreach ( $errors as $key => $error ) {
-      $output .= '<div class="error"><p>' . wp_kses_post( $error ) . '</p></div>';
-    }
-  }
-  if ( ! empty( $purchase_code ) ) {
-    if ( ! empty( $errors ) ) {
-      //since there is already a purchase code present - notify the user
-      $output .= '<p>' . esc_html__( 'Purchase code not updated. We will keep the existing one.', 'wupdates' ) . '</p>';
-    } else {
-      //this means a valid purchase code is present and no errors were found
-      $output .= '<p><span class="notice notice-success notice-alt">' . __( 'Your <strong>purchase code is valid</strong>. Thank you! Enjoy one-click automatic updates.', 'wupdates' ) . '</span></p>';
-    }
-  }
-  $purchase_code_key = esc_attr( strtolower( str_replace( array(' ', '.'), '_', $slug ) ) ) . '_wup_purchase_code';
-  $output .= '<form class="wupdates_purchase_code" action="" method="post">' .
-    '<input type="hidden" name="wupdates_pc_theme" value="' . esc_attr( $slug ) . '" />' .
-    '<input type="text" id="' . $purchase_code_key . '" name="' . $purchase_code_key . '"
-            value="' . esc_attr( $purchase_code ) . '" placeholder="' . esc_html__( 'Purchase code ( e.g. 9g2b13fa-10aa-2267-883a-9201a94cf9b5 )', 'wupdates' ) . '"/>' . ' ' .
-    __( 'Enter your purchase code.', 'wupdates' ) . ' ' .
-    __( 'Find out how to <a href="https://help.market.envato.com/hc/en-us/articles/202822600-Where-Is-My-Purchase-Code-" target="_blank">get your purchase code</a>.', 'wupdates' ) .
-    '</form>';
-
-  echo $output;
-}
-add_action( 'in_theme_update_message-' . basename( get_template_directory() ), 'wupdates_ms_theme_list_purchase_code_field_JQ9eJ', 10, 2 );
-
-function wupdates_purchase_code_needed_notice_JQ9eJ() {
-  global $current_screen;
-
-  $output = '';
-
-  //if the purchase code doesn't pass the prevalidation, show notice
-  if ( in_array( $current_screen->id, array( 'update-core', 'update-core-network') ) && ! flatsome_envato()->is_registered() ) {
-    $output .= '<div class="updated"><p>' . sprintf( __( '<a href="%s">Please enter your Envato token</a> to activate Flatsome and get one-click updates.', 'flatsome' ), network_admin_url( 'admin.php?page=flatsome-panel' ) ) . '</p></div>';
-  }
-
-  echo $output;
-}
-add_action( 'admin_notices', 'wupdates_purchase_code_needed_notice_JQ9eJ' );
-add_action( 'network_admin_notices', 'wupdates_purchase_code_needed_notice_JQ9eJ' );
-
-function wupdates_process_purchase_code_JQ9eJ() {
-  $slug = isset( $_POST['wupdates_pc_theme'] )
-    ? sanitize_text_field( $_POST['wupdates_pc_theme'] )
-    : '';
-
-  if ( ! empty( $_POST['flatsome_wizard_envato_token'] ) ) {
-
-    $token     = wp_unslash( $_POST['flatsome_wizard_envato_token'] );
-    $confirmed = (bool) wp_unslash( $_POST['flatsome_wizard_envato_terms'] );
-    flatsome_envato()->admin()->update_token( $token, $confirmed );
-    delete_option( strtolower( $slug ) . '_wup_errors' );
-
-    // Redirect back to the themes page and open popup.
-    wp_redirect( esc_url_raw( add_query_arg( 'theme', $slug ) ) );
-    exit;
-
-  } else if ( ! empty( $_POST['wupdates_pc_theme'] ) ) {
-
-    $errors = array();
-    $slug = sanitize_text_field( $_POST['wupdates_pc_theme'] ); // get the theme's slug
-    //PHP doesn't allow dots or spaces in $_POST keys - it converts them into underscore; so we do also
-    $purchase_code_key = esc_attr( strtolower( str_replace( array(' ', '.'), '_', $slug ) ) ) . '_wup_purchase_code';
-    $purchase_code = false;
-    if ( ! empty( $_POST[ $purchase_code_key ] ) ) {
-      //get the submitted purchase code and sanitize it
-      $purchase_code = sanitize_text_field( $_POST[ $purchase_code_key ] );
-      //do a prevalidation; no need to make the API call if the format is not right
-      if ( true !== wupdates_prevalidate_purchase_code_JQ9eJ( $purchase_code ) ) {
-        $purchase_code = false;
-      }
-    }
-    if ( ! empty( $purchase_code ) ) {
-      //check if this purchase code represents a sale of the theme
-      $http_args = array (
-        'body' => array(
-          'slug' => $slug, //the theme's slug
-          'url' => home_url(), //the site's home URL
-          'purchase_code' => $purchase_code,
-        )
-      );
-
-      //make sure that we use a protocol that this hosting is capable of
-      $url = $http_url = set_url_scheme( 'https://wupdates.com/wp-json/wup/v1/front/check_envato_purchase_code/JQ9eJ', 'http' );
-      if ( $ssl = wp_http_supports( array( 'ssl' ) ) ) {
-        $url = set_url_scheme( $url, 'https' );
-      }
-      //make the call to the purchase code check API
-      $raw_response = wp_remote_post( $url, $http_args );
-      if ( $ssl && is_wp_error( $raw_response ) ) {
-        $raw_response = wp_remote_post( $http_url, $http_args );
-      }
-      // In case the server hasn't responded properly, show error
-      if ( is_wp_error( $raw_response ) || 200 != wp_remote_retrieve_response_code( $raw_response ) ) {
-        $errors[] = __( 'We are sorry but we couldn\'t connect to the verification server. Please try again later.', 'wupdates' ) . '<span class="hidden">' . print_r( $raw_response, true ) . '</span>';
-      } else {
-        $response = json_decode( $raw_response['body'], true );
-        if ( ! empty( $response ) ) {
-          //we will only update the purchase code if it's valid
-          //this way we keep existing valid purchase codes
-          if ( isset( $response['purchase_code'] ) && 'valid' == $response['purchase_code'] ) {
-
-
-            //all is good, update the purchase code option
-            update_option( strtolower( $slug ) . '_wup_purchase_code', $purchase_code );
-
-            // Sold at
-            update_option( strtolower( $slug ) . '_wup_sold_at', $response['raw_response']['sold_at'] );
-
-            // Supported until
-	        if ( ! isset( $response['raw_response']['supported_until'] ) ) {
-		        $dateTime = new DateTime( $response['raw_response']['sold_at'] );
-		        $dateTime->modify( '+6 months' );
-		        $response['raw_response']['supported_until'] = $dateTime->format( 'Y-m-d\TH:i:sP' );
-	        }
-            update_option( strtolower( $slug ) . '_wup_supported_until', $response['raw_response']['supported_until'] );
-
-            // Buyer
-            update_option( strtolower( $slug ) . '_wup_buyer', $response['raw_response']['buyer'] );
-
-            //delete the update_themes transient so we force a recheck
-            set_site_transient('update_themes', null);
-          } else {
-            if ( isset( $response['reason'] ) && ! empty( $response['reason'] ) && 'out_of_support' == $response['reason'] ) {
-              $errors[] = esc_html__( 'Your purchase\'s support period has ended. Please extend it to receive automatic updates.', 'wupdates' );
-            } else {
-              $errors[] = esc_html__( 'Could not find a sale with this purchase code. Please double check.', 'wupdates' );
-            }
-          }
-        }
-      }
-    } else {
-      //in case the user hasn't entered a valid purchase code
-      $errors[] = esc_html__( 'Please enter a valid purchase code. Make sure to get all the characters.', 'wupdates' );
-    }
-
-    if ( count( $errors ) > 0 ) {
-      //if we do have errors, save them in the database so we can display them to the user
-      update_option( strtolower( $slug ) . '_wup_errors', $errors );
-    } else {
-      //since there are no errors, delete the option
-      delete_option( strtolower( $slug ) . '_wup_errors' );
-    }
-
-    //redirect back to the themes page and open popup
-    wp_redirect( esc_url_raw( add_query_arg( 'theme', $slug ) ) );
-    exit;
-  }
-}
-add_action( 'admin_init', 'wupdates_process_purchase_code_JQ9eJ' );
-
-function wupdates_send_purchase_code_JQ9eJ( $optional_data, $slug ) {
-  //get the saved purchase code
-  $purchase_code = sanitize_text_field( get_option( strtolower( $slug ) . '_wup_purchase_code', '' ) );
-
-  if ( null === $optional_data ) { //if there is no optional data, initialize it
-    $optional_data = array();
-  }
-  //add the purchase code to the optional_data so we can check it upon update check
-  //if a theme has an Envato item selected, this is mandatory
-  $optional_data['envato_purchase_code'] = $purchase_code;
-
-  return $optional_data;
-}
-add_filter( 'wupdates_call_data_request', 'wupdates_send_purchase_code_JQ9eJ', 10, 2 );
-
-function wupdates_prevalidate_purchase_code_JQ9eJ( $purchase_code ) {
-  $purchase_code = preg_replace( '#([a-z0-9]{8})-?([a-z0-9]{4})-?([a-z0-9]{4})-?([a-z0-9]{4})-?([a-z0-9]{12})#', '$1-$2-$3-$4-$5', strtolower( $purchase_code ) );
-  if ( 36 == strlen( $purchase_code ) ) {
-    return true;
-  }
-  return false;
-}
-
-/* End of Envato checkup code */

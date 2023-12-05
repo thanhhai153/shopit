@@ -44,17 +44,29 @@ class Flatsome_Upgrade {
 	 * @var array
 	 */
 	private $updates = array(
-		'3.4.0' => array(
+		'3.4.0'  => array(
 			'update_340',
 		),
-		'3.6.0' => array(
+		'3.6.0'  => array(
 			'update_360',
 		),
-		'3.9.0' => array(
+		'3.9.0'  => array(
 			'update_390',
 		),
 		'3.12.1' => array(
 			'update_3121',
+		),
+		'3.15.0' => array(
+			'update_3150',
+		),
+		'3.16.0' => array(
+			'update_3160',
+		),
+		'3.17.0' => array(
+			'update_3170',
+		),
+		'3.18.0' => array(
+			'update_3180',
 		),
 	);
 
@@ -62,7 +74,6 @@ class Flatsome_Upgrade {
 	 * Flatsome_Upgrade Class constructor
 	 */
 	public function __construct() {
-
 		add_action( 'init', array( $this, 'check_version' ), 5, 0 );
 	}
 
@@ -70,17 +81,13 @@ class Flatsome_Upgrade {
 	 * Check Flatsome version and run the updater if required.
 	 */
 	public function check_version() {
-
 		$theme                 = wp_get_theme( get_template() );
 		$this->db_version      = get_theme_mod( 'flatsome_db_version', '3.0.0' );
 		$this->running_version = $theme->version;
 
-		// If current version is new and current version has any update run it.
-		if ( version_compare( $this->db_version, $this->running_version, '<' ) && version_compare( $this->db_version, $this->highest_update_version(), '<' ) ) {
+		// If current version is new.
+		if ( version_compare( $this->db_version, $this->running_version, '<' ) ) {
 			$this->update();
-			if ( $this->is_upgrade_completed ) {
-				$this->update_db_version();
-			}
 		}
 	}
 
@@ -88,32 +95,40 @@ class Flatsome_Upgrade {
 	 * Push all needed updates
 	 */
 	private function update() {
+		if ( version_compare( $this->db_version, $this->highest_update_version(), '<' ) ) {
+			try {
+				foreach ( $this->updates as $version => $update_callbacks ) {
+					if ( version_compare( $this->db_version, $version, '<' ) ) {
 
-		foreach ( $this->updates as $version => $update_callbacks ) {
-			if ( version_compare( $this->db_version, $version, '<' ) ) {
-
-				// Run all callbacks.
-				foreach ( $update_callbacks as $update_callback ) {
-					if ( method_exists( $this, $update_callback ) ) {
-						$this->$update_callback();
-					} elseif ( function_exists( $update_callback ) ) {
-						$update_callback();
+						// Run all callbacks.
+						foreach ( $update_callbacks as $update_callback ) {
+							if ( method_exists( $this, $update_callback ) ) {
+								$this->$update_callback();
+							} elseif ( function_exists( $update_callback ) ) {
+								$update_callback();
+							}
+						}
 					}
 				}
+
+				$this->update_db_version();
+			} catch ( Exception $e ) {
+				error_log( $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions
 			}
+		} else {
+			$this->update_db_version();
 		}
-		$this->is_upgrade_completed = true;
 	}
 
 	/**
-	 * Retrieve the version number of highest update available.
+	 * Retrieve the version number of the highest update available.
 	 *
 	 * @return string Version number
 	 */
 	private function highest_update_version() {
 		return array_reduce( array_keys( $this->updates ), function ( $highest, $current ) {
 			return version_compare( $highest, $current, '>' ) ? $highest : $current;
-		} );
+		}, '1.0.0' );
 	}
 
 	/**
@@ -130,7 +145,6 @@ class Flatsome_Upgrade {
 	 * Performs upgrades to Flatsome 3.6.0
 	 */
 	private function update_360() {
-
 		// Set cart layout as checkout layout if its set.
 		if ( get_theme_mod( 'checkout_layout' ) ) {
 			set_theme_mod( 'cart_layout', get_theme_mod( 'checkout_layout' ) );
@@ -180,7 +194,6 @@ class Flatsome_Upgrade {
 	 * Performs upgrades to Flatsome 3.12.1
 	 */
 	private function update_3121() {
-
 		// Change 404_block setting value from post_name to ID if one is chosen.
 		$block = get_theme_mod( '404_block' );
 		if ( ! empty( $block ) && ! is_numeric( $block ) ) {
@@ -202,6 +215,63 @@ class Flatsome_Upgrade {
 	}
 
 	/**
+	 * Performs upgrades to Flatsome 3.15.0
+	 */
+	private function update_3150() {
+		foreach ( array( 'site_logo', 'site_logo_dark', 'site_logo_sticky' ) as $name ) {
+			$value = get_theme_mod( $name );
+
+			if ( empty( $value ) ) continue;
+			if ( is_numeric( $value ) ) continue;
+
+			if ( $post_id = attachment_url_to_postid( $value ) ) {
+				set_theme_mod( $name, $post_id );
+			}
+		}
+	}
+
+	/**
+	 * Performs upgrades to Flatsome 3.16.0
+	 */
+	private function update_3160() {
+		// Mirror vertical menu opener width.
+		if ( get_theme_mod( 'header_nav_vertical_width', '250' ) != 250 ) {
+			set_theme_mod( 'header_nav_vertical_fly_out_width', get_theme_mod( 'header_nav_vertical_width' ) );
+		}
+
+		// Change variant 400 to 'regular'.
+		foreach ( array( 'type_headings', 'type_texts', 'type_nav', 'type_alt' ) as $font_type ) {
+			$setting = get_theme_mod( $font_type );
+
+			if ( $setting && isset( $setting['variant'] ) && $setting['variant'] == '400' ) {
+				$setting['variant'] = 'regular';
+				set_theme_mod( $font_type, $setting );
+			}
+		}
+	}
+
+	/**
+	 * Performs upgrades to Flatsome 3.17.0
+	 */
+	private function update_3170() {
+		// Iterate sticky sidebar options and set their mode to 'javascript' if enabled before the upgrade.
+		foreach ( array( 'blog_sticky_sidebar', 'category_sticky_sidebar', 'cart_sticky_sidebar', 'checkout_sticky_sidebar' ) as $name ) {
+			if ( empty( get_theme_mod( $name ) ) ) continue;
+			set_theme_mod( $name . '_mode', 'javascript' );
+		}
+	}
+
+	/**
+	 * Performs upgrades to Flatsome 3.18.0
+	 */
+	private function update_3180() {
+		if ( get_theme_mod( 'flatsome_infinite_scroll', 0 ) ) {
+			set_theme_mod( 'shop_pagination', 'infinite-scroll' );
+		}
+		remove_theme_mod( 'flatsome_infinite_scroll' );
+	}
+
+	/**
 	 * Set the DB version to the current running version.
 	 * Should only be called when all upgrades are performed.
 	 */
@@ -210,4 +280,6 @@ class Flatsome_Upgrade {
 	}
 }
 
-new Flatsome_Upgrade();
+if ( ! wp_doing_ajax() ) {
+	new Flatsome_Upgrade();
+}

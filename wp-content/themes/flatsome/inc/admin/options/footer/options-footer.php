@@ -234,7 +234,7 @@ function flatsome_customizer_footer_options() {
 		'section'           => 'footer',
 		'transport'         => flatsome_customizer_transport(),
 		'sanitize_callback' => 'flatsome_custom_sanitize',
-		'default'           => 'Copyright [ux_current_year] &copy; <strong>UX Themes</strong>',
+		'default'           => 'Copyright [ux_current_year] &copy; <strong>Flatsome Theme</strong>',
 	) );
 
 	Flatsome_Option::add_field( 'option', array(

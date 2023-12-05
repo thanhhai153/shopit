@@ -97,7 +97,7 @@ function flatsome_text_box( $atts, $content = null ){
            <div class="text-box-content text <?php echo $classes_inner; ?>">
               <?php require( __DIR__ . '/commons/border.php' ) ;?>
               <div class="<?php echo $classes_text; ?>">
-                  <?php echo flatsome_contentfix($content); ?>
+                  <?php echo do_shortcode( $content ); ?>
               </div>
            </div>
        <?php if($animate) echo '</div>'; ?>

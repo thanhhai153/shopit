@@ -22,16 +22,20 @@ class PostArray {
     $post_content = $this->post->post_content;
     $transformer  = ux_builder( 'to-array' );
 
-    if ( has_block( 'flatsome/uxbuilder', $post_content ) ) {
+    if ( has_blocks( $post_content ) ) {
       $blocks   = parse_blocks( $post_content );
       $elements = array();
+
+      $content_block = has_block( 'flatsome/uxbuilder', $post_content )
+        ? 'flatsome/uxbuilder'
+        : 'core/html';
 
       foreach ( $blocks as $block ) {
         if ( empty( $block['blockName'] ) ) {
           continue;
         }
 
-        if ( $block['blockName'] === 'flatsome/uxbuilder' ) {
+        if ( $block['blockName'] === $content_block ) {
           if ( ! empty( $block['innerHTML'] ) ) {
             $elements = array_merge(
               $elements,
@@ -71,7 +75,6 @@ class PostArray {
         ),
       );
     } else {
-      $post_content     = preg_replace( '/<!-- \/?wp:html -->/', '', $post_content );
       $this->post_array = $transformer->transform( "[_root]{$post_content}[/_root]" );
     }
 

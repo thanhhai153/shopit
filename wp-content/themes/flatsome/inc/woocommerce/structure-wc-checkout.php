@@ -6,7 +6,7 @@ if(!function_exists('flatsome_woocommerce_before_cart_totals')) {
           <table cellspacing="0">
           <thead>
               <tr>
-                  <th class="product-name" colspan="2" style="border-width:3px;"><?php _e( 'Cart totals', 'woocommerce' ); ?></th>
+                  <th class="product-name" colspan="2"><?php _e( 'Cart totals', 'woocommerce' ); ?></th>
               </tr>
           </thead>
           </table>
@@ -17,7 +17,7 @@ add_action( 'woocommerce_before_cart_totals', 'flatsome_woocommerce_before_cart_
 
 // Custom Thank You Html
 function flatsome_thank_you_html(){
-    echo get_theme_mod('html_thank_you');
+	echo do_shortcode( get_theme_mod( 'html_thank_you' ) );
 }
 add_action( 'woocommerce_thankyou', 'flatsome_thank_you_html', 100);
 
@@ -130,7 +130,7 @@ function flatsome_terms_and_conditions_checkbox_text( $link_style ) {
 		return;
 	}
 
-	$terms_link = $terms_page_id ? '<a href="' . esc_url( get_permalink( $terms_page_id ) ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'terms and conditions', 'woocommerce' ) . '</a>' : esc_html__( 'terms and conditions', 'woocommerce' );
+	$terms_link = $terms_page_id ? '<a href="' . esc_url( get_permalink( $terms_page_id ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'terms and conditions', 'woocommerce' ) . '</a>' : esc_html__( 'terms and conditions', 'woocommerce' );
 
 	if ( $link_style === 'lightbox' ) {
 		$terms_link = $terms_page_id ? '<a href="#terms-and-conditions-lightbox">' . esc_html__( 'terms and conditions', 'woocommerce' ) . '</a>' : esc_html__( 'terms and conditions', 'woocommerce' );
@@ -161,7 +161,7 @@ function flatsome_terms_and_conditions_lightbox() {
 	$page = get_post( $terms_page_id );
 
 	$shortcode  = '[lightbox id="terms-and-conditions-lightbox" width="800px" padding="20px"]';
-	$shortcode .= wc_format_content( $page->post_content );
+	$shortcode .= $page->post_content;
 	if ( get_theme_mod( 'terms_and_conditions_lightbox_buttons', 1 ) ) {
 		$text = __( 'I have read and agree', 'flatsome' );
 

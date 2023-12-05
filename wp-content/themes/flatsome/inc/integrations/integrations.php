@@ -43,6 +43,11 @@ if ( function_exists( 'pll_get_post' ) || function_exists( 'icl_object_id' ) ) {
 	require $integrations_url . '/wpml/flatsome-wpml.php';
 }
 
+// WCML Integration.
+if ( defined( 'WCML_VERSION' ) ) {
+	require $integrations_url . '/wcml/class-wcml.php';
+}
+
 // Contactform7.
 if ( class_exists( 'WPCF7' ) ) {
 	require $integrations_url . '/contact-form-7/contact-form-7.php';
@@ -63,7 +68,7 @@ if ( class_exists( 'Sensei_Main' ) ) {
 }
 
 // Yoast Integration.
-if ( class_exists( 'WPSEO_Frontend' ) ) {
+if ( class_exists( 'WPSEO_Options' ) ) {
 	require $integrations_url . '/wp-seo/class-wp-seo.php';
 }
 
@@ -71,6 +76,17 @@ if ( class_exists( 'WPSEO_Frontend' ) ) {
 if ( class_exists( 'RankMath' ) ) {
 	require $integrations_url . '/rank-math/class-rank-math.php';
 }
+
+// All in one SEO Integration.
+if ( class_exists( 'AIOSEO\Plugin\AIOSEO' ) ) {
+	require $integrations_url . '/all-in-one-seo/class-aioseo.php';
+}
+
+// SEOPress Integration.
+if ( defined( 'SEOPRESS_VERSION' ) ) {
+	require $integrations_url . '/wp-seopress/class-wp-seopress.php';
+}
+
 
 // WooCommerce Integrations.
 if ( is_woocommerce_activated() ) {
@@ -84,7 +100,7 @@ if ( is_woocommerce_activated() ) {
 		}
 
 		// Extra Product Options.
-		if ( is_extension_activated( 'TM_Extra_Product_Options' ) ) {
+		if ( is_extension_activated( 'THEMECOMPLETE_Extra_Product_Options' ) ) {
 			wp_enqueue_style( 'flatsome-woocommerce-extra-product-options', $integrations_uri . '/wc-extra-product-options/extra-product-options.css', 'flatsome-woocommerce-style' );
 		}
 
@@ -111,6 +127,11 @@ if ( is_woocommerce_activated() ) {
 	// Add Yith Wishlist integration.
 	if ( class_exists( 'YITH_WCWL' ) ) {
 		require $integrations_url . '/wc-yith-wishlist/yith-wishlist.php';
+	}
+
+	// YITH WooCommerce Ajax navigation integration.
+	if ( defined( 'YITH_WCAN' ) ) {
+		require $integrations_url . '/wc-yith-ajax-navigation/yith-ajax-navigation.php';
 	}
 
 	// Add Composite products integration.

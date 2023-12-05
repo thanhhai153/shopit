@@ -421,16 +421,10 @@ if ( ! class_exists( 'WC_Product_Woosb' ) && class_exists( 'WC_Product' ) ) {
 							'attrs' => []
 						], $item );
 
-						// check for variation
-						if ( ( $parent_id = wp_get_post_parent_id( $item['id'] ) ) && ( $parent = wc_get_product( $parent_id ) ) ) {
-							$parent_sku = $parent->get_sku();
-						} else {
-							$parent_sku = '';
-						}
-
-						if ( apply_filters( 'woosb_use_sku', false ) && ! empty( $item['sku'] ) && ( $item['sku'] !== $parent_sku ) && ( $new_id = wc_get_product_id_by_sku( $item['sku'] ) ) ) {
-							// get product id by SKU for export/import
-							$item['id'] = $new_id;
+						if ( apply_filters( 'woosb_use_sku', false ) && ! empty( $item['sku'] ) ) {
+							if ( $new_id = WPCleverWoosb_Helper()->get_product_id_from_sku( $item['sku'] ) ) {
+								$item['id'] = $new_id;
+							}
 						}
 
 						$items[] = $item;

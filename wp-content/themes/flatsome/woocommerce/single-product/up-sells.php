@@ -10,9 +10,10 @@
  * happen. When this occurs the version of the template file will be bumped and
  * the readme will list any important changes.
  *
- * @see         https://docs.woocommerce.com/document/template-structure/
- * @package     WooCommerce/Templates
- * @version     3.0.0
+ * @see              https://docs.woocommerce.com/document/template-structure/
+ * @package          WooCommerce/Templates
+ * @version          3.0.0
+ * @flatsome-version 3.16.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -59,17 +60,14 @@ if ( $upsells ) : ?>
 
 			<?php get_flatsome_repeater_start( $repeater ); ?>
 
-			<?php foreach ( $upsells as $upsell ) : ?>
-
-				<?php
+			<?php foreach ( $upsells as $upsell ) :
 				$post_object = get_post( $upsell->get_id() );
 
 				setup_postdata( $GLOBALS['post'] =& $post_object ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited, Squiz.PHP.DisallowMultipleAssignments.Found
 
 				wc_get_template_part( 'content', 'product' );
-				?>
-
-			<?php endforeach; ?>
+			endforeach;
+			?>
 
 			<?php get_flatsome_repeater_end( $repeater ); ?>
 		</div>
