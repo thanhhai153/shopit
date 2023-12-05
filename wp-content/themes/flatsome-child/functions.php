@@ -182,7 +182,10 @@ function title_with_cat_shortcode($atts, $content = null)
     }
   }
   return '<div class="' . $classes . '" ' . get_shortcode_inline_css($css_args) . '><' . $tag_name . ' class="section-title section-title-' . $style . '"><b></b><span class="section-title-main" ' . get_shortcode_inline_css($css_args_title) . '>' . $icon . $text . $small_text . '</span>
-    <ul class="shopit-show-cats">' . $shopit_html_show_cat . '</ul><b></b>' . $link_output . '</' . $tag_name . '></div><!-- .section-title -->';
+  <div class="btn_menu active">
+              Xem thêm <i class="icon-angle-down"></i>
+            </div>  
+  <ul class="shopit-show-cats">' . $shopit_html_show_cat . '</ul><b></b>' . $link_output . '</' . $tag_name . '></div><!-- .section-title -->';
 }
 add_shortcode('title_with_cat', 'title_with_cat_shortcode');
 

@@ -40,7 +40,7 @@ span.amount {
 .icon-stick .list-icon-social a {
     width: 38px;
     height: 38px;
-    background-color: var(--primary-color);
+    background-color: #0098d9;
     color: #fff;
     line-height: 38px;
     border-radius: 100px;
@@ -128,9 +128,33 @@ span.amount {
 .section-title-normal {
     border-bottom: 2px solid #0098d9;
 }
+.section-title-normal .btn_menu {
+    display: none;
+}
 .section-title-normal b {
     display: none;
 }
+@media screen and (max-width: 768px){
+    .section .section-title-normal .btn_menu {
+        display: block;
+    }
+    .shopit-show-cats {
+        display: none;
+        float: none;
+        width: 90.5%;
+        clear: both;
+        margin-top: 15px;
+        position: absolute;
+        background: #fff;
+        z-index: 9999;
+        padding: 0px 15px;
+        margin: 3px 15px 0px 0px;
+        box-shadow: rgba(31, 38, 67, 0.1) 0px 3px 25px 0px;
+        top: 39px;
+    }
+}
+
+
 .section-title-normal span {
     margin-right: 15px;
     padding-bottom: 0;
@@ -220,5 +244,18 @@ span.shopit-show-cats li a {
     background: #0d6efd1a;
     color: #0098d9;
 }
+/* .searchform .button.icon{
+    position: relative !important;
+} */
 
-
+/* CSS bảo hành, còn hàng*/
+.bao_hanh{
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #114eab !important;
+}
+p.in-stock{
+    color: #ff0000 !important;
+    font-size: 16px;
+}

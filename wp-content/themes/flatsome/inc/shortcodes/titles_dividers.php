@@ -54,8 +54,12 @@ function title_shortcode( $atts, $content = null ){
   if($color){
     $css_args_title[] = array( 'attribute' => 'color', 'value' => $color);
   }
+  $date = '';
+  if(get_the_ID() == 361){
+    $date = date('d/m/Y');
+  }
 
-  return '<div class="'.$classes.'" '.get_shortcode_inline_css($css_args).'><'. $tag_name . ' class="section-title section-title-'.$style.'"><b></b><span class="section-title-main" '.get_shortcode_inline_css($css_args_title).'>'.$icon.$text.$small_text.'</span><b></b>'.$link_output.'</' . $tag_name .'></div>';
+  return '<div class="'.$classes.'" '.get_shortcode_inline_css($css_args).'><'. $tag_name . ' class="section-title section-title-'.$style.'"><b></b><span class="section-title-main" '.get_shortcode_inline_css($css_args_title).'>'.$icon.$text.$small_text. ' ' . $date .'</span><b></b>'.$link_output.'</' . $tag_name .'></div>';
 }
 add_shortcode('title', 'title_shortcode');
 

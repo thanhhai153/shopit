@@ -19,6 +19,7 @@ global $flatsome_opt;
 </div>
 
 <?php wp_footer(); ?>
+<script src="/wp-content/themes/flatsome-child/app.js"></script>
 
 </body>
 </html>

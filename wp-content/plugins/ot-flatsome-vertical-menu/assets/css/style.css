@@ -258,7 +258,7 @@
     display: block;
 }
 .home.ot-menu-show-home #mega_menu {
-    display: block;
+    visibility: visible;
 }
 #header.header.has-sticky .header-wrapper.stuck #mega-menu-wrap:hover #mega_menu:not(.active) {
     display: block;
@@ -330,7 +330,4 @@ padding: o;
 .info {
     display: flex;
     flex-direction: column;
-}
-.info > i{
-    margin-bottom: 18px !important; /* Điều chỉnh khoảng cách giữa các thẻ <i> */
 }
