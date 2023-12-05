@@ -20,7 +20,7 @@ function ux_lightbox( $atts, $content = null ) {
 	<div id="<?php echo $id; ?>"
 	     class="lightbox-by-id lightbox-content mfp-hide lightbox-white <?php echo $class; ?>"
 	     style="max-width:<?php echo $width ?> ;padding:<?php echo $padding; ?>">
-		<?php echo flatsome_contentfix( $content ); ?>
+		<?php echo do_shortcode( $content ); ?>
 	</div>
 	<?php if ( $auto_open ) : ?>
 		<script>
@@ -42,20 +42,22 @@ function ux_lightbox( $atts, $content = null ) {
 
 					// Ensure closing off canvas
 					setTimeout(function () {
-						jQuery.magnificPopup.close()
+						if (jQuery.fn.magnificPopup) jQuery.magnificPopup.close()
 					}, timer - 350)
 
 					// Open lightbox
 					setTimeout(function () {
-						$.magnificPopup.open({
-							midClick: true,
-							removalDelay: 300,
-							// closeBtnInside: flatsomeVars.lightbox.close_btn_inside,
-							// closeMarkup: flatsomeVars.lightbox.close_markup,
-							items: {
-								src: '#<?php echo $id; ?>',
-								type: 'inline'
-							}
+						$.loadMagnificPopup().then(function() {
+							$.magnificPopup.open({
+								midClick: true,
+								removalDelay: 300,
+								// closeBtnInside: flatsomeVars.lightbox.close_btn_inside,
+								// closeMarkup: flatsomeVars.lightbox.close_markup,
+								items: {
+									src: '#<?php echo $id; ?>',
+									type: 'inline'
+								}
+							})
 						})
 					}, timer)
 

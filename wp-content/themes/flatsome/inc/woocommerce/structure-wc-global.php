@@ -24,6 +24,10 @@ if ( ! function_exists( 'flatsome_woocommerce_add_notice' ) ) {
 	 * Add wc notices except for the cart page
 	 */
 	function flatsome_woocommerce_add_notice() {
+		if ( flatsome_is_login_request() || flatsome_is_register_request() ) {
+			return;
+		}
+
 		if ( is_woocommerce_activated() && ! is_cart() ) {
 			if ( function_exists( 'wc_print_notices' ) ) wc_print_notices();
 		}
@@ -186,7 +190,7 @@ if ( ! function_exists( 'flatsome_header_add_to_cart_fragment_count_label' ) ) {
 		?>
 		<i class="icon-shopping-<?php echo $icon; ?>" data-icon-label="<?php echo WC()->cart->cart_contents_count; ?>">
 		<?php
-		$fragments[ 'i.icon-shopping-' . $icon ] = ob_get_clean();
+		$fragments[ '.cart-item i.icon-shopping-' . $icon ] = ob_get_clean();
 
 		return $fragments;
 	}
@@ -285,18 +289,63 @@ function flatsome_pages_in_search_results(){
 }
 add_action('woocommerce_after_main_content','flatsome_pages_in_search_results', 10);
 
+/**
+ * Filters the WooCommerce sale flash.
+ *
+ * @param string     $html    The HTML string.
+ * @param WP_Post    $post    Post object.
+ * @param WC_Product $product Product object.
+ *
+ * @return false|mixed
+ */
+function flatsome_woocommerce_sale_flash( $html, $post, $product ) {
+	if ( ! get_theme_mod( 'sale_bubble', 1 ) ) {
+		return '';
+	}
 
+	return $html;
+}
+
+add_filter( 'woocommerce_sale_flash', 'flatsome_woocommerce_sale_flash', 10, 3 );
+
+function flatsome_new_flash( $html, $post, $product, $badge_style ) {
+	if ( ! get_theme_mod( 'new_bubble_auto' ) ) {
+		return $html;
+	}
+
+	$datetime_created = $product->get_date_created();
+
+	if ( ! $datetime_created ) {
+		return $html;
+	}
+
+	$timestamp_created = $datetime_created->getTimestamp();
+	$datetime_now      = new WC_DateTime();
+	$timestamp_now     = $datetime_now->getTimestamp();
+	$time_delta        = $timestamp_now - $timestamp_created;
+	$days              = (int) get_theme_mod( 'new_bubble_auto' );
+	$days_in_seconds   = 60 * 24 * 60 * $days;
+
+	if ( $time_delta < $days_in_seconds ) {
+		$html .= apply_filters( 'flatsome_new_flash_html', '<div class="badge callout badge-' . $badge_style . '"><div class="badge-inner is-small new-bubble-auto">' . esc_html__( 'New', 'flatsome' ) . '</div></div>', $post, $product, $badge_style );
+	}
+
+	return $html;
+}
+
+add_filter( 'flatsome_product_labels', 'flatsome_new_flash', 20, 4 );
 
 /**
  * Calculates discount percentage for the product sale bubble for
  * simple, variable or external product types. Returns base bubble text
  * with or without formatting otherwise.
  *
-* @param $product
+ * @param WC_Product $product Product object.
+ * @param string     $text    Default text.
  *
-* @return string
+ * @return string
  */
-function flatsome_presentage_bubble( $product ) {
+function flatsome_presentage_bubble( $product, $text ) {
 	$post_id = $product->get_id();
 
 	if ( $product->is_type( 'simple' ) || $product->is_type( 'external' ) || $product->is_type( 'variation' ) ) {
@@ -333,10 +382,8 @@ function flatsome_presentage_bubble( $product ) {
 			flatsome_percentage_set_cache( $post_id, $bubble_content );
 		}
 	} else {
-		// Set default and return if the product type doesn't meet specification.
-		$bubble_content = __( 'Sale!', 'woocommerce' );
-
-		return $bubble_content;
+		// Return default if the product type doesn't meet specification.
+		return $text;
 	}
 
 	return flatsome_percentage_format( $bubble_content );
@@ -387,16 +434,19 @@ function flatsome_account_login_lightbox(){
   if ( !is_user_logged_in() && get_theme_mod('account_login_style','lightbox') == 'lightbox' && !is_checkout() && !is_account_page() ) {
     $is_facebook_login = is_nextend_facebook_login();
     $is_google_login = is_nextend_google_login();
+    $layout = get_theme_mod( 'account_login_lightbox_layout' );
 
-	if ( 'no' === get_option( 'woocommerce_registration_generate_password' ) ) {
+	if ( empty( $layout ) && 'no' === get_option( 'woocommerce_registration_generate_password' ) ) {
 		wp_enqueue_script( 'wc-password-strength-meter' );
 	}
 
     ?>
     <div id="login-form-popup" class="lightbox-content mfp-hide">
       <?php if(get_theme_mod('social_login_pos','top') == 'top' && ($is_facebook_login || $is_google_login)) wc_get_template('myaccount/header.php'); ?>
-      <?php wc_get_template_part('myaccount/form-login'); ?>
-      <?php if(get_theme_mod('social_login_pos','top') == 'bottom' && ($is_facebook_login || $is_google_login)) wc_get_template('myaccount/header.php'); ?>
+      	<div class="woocommerce">
+      		<?php wc_get_template_part('myaccount/form-login', $layout ); ?>
+		</div>
+      	<?php if(get_theme_mod('social_login_pos','top') == 'bottom' && ($is_facebook_login || $is_google_login)) wc_get_template('myaccount/header.php'); ?>
     </div>
   <?php }
 }
@@ -422,29 +472,54 @@ if(get_theme_mod('disable_reviews')){
     }
 }
 
-if( !function_exists('flatsome_wc_get_gallery_image_html') ) {
-  // Copied and modified from woocommerce plugin and wc_get_gallery_image_html helper function.
-  function flatsome_wc_get_gallery_image_html( $attachment_id, $main_image = false, $size = 'woocommerce_single' ) {
-    $gallery_thumbnail = wc_get_image_size( 'gallery_thumbnail' );
-    $thumbnail_size    = apply_filters( 'woocommerce_gallery_thumbnail_size', array( $gallery_thumbnail['width'], $gallery_thumbnail['height'] ) );
-    $image_size        = apply_filters( 'woocommerce_gallery_image_size', $size );
-    $full_size         = apply_filters( 'woocommerce_gallery_full_size', apply_filters( 'woocommerce_product_thumbnails_large_size', 'full' ) );
-    $thumbnail_src     = wp_get_attachment_image_src( $attachment_id, $thumbnail_size );
-    $full_src          = wp_get_attachment_image_src( $attachment_id, $full_size );
-    $image             = wp_get_attachment_image( $attachment_id, $image_size, false, array(
-      'title'                   => get_post_field( 'post_title', $attachment_id ),
-      'data-caption'            => get_post_field( 'post_excerpt', $attachment_id ),
-      'data-src'                => $full_src[0],
-      'data-large_image'        => $full_src[0],
-      'data-large_image_width'  => $full_src[1],
-      'data-large_image_height' => $full_src[2],
-      'class'                   => $main_image ? 'wp-post-image skip-lazy' : 'skip-lazy', // skip-lazy, blacklist for Jetpack's lazy load.
-    ) );
+if ( ! function_exists( 'flatsome_wc_get_gallery_image_html' ) ) {
+	/**
+	 * Get HTML for a gallery image. Copied and modified from woocommerce plugin and wc_get_gallery_image_html helper function.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param bool   $main_image    Is this the main image or a thumbnail?.
+	 * @param string $size          Image size.
+	 *
+	 * @return string
+	 */
+	function flatsome_wc_get_gallery_image_html( $attachment_id, $main_image = false, $size = 'woocommerce_single' ) {
+		$gallery_thumbnail = wc_get_image_size( 'gallery_thumbnail' );
+		$thumbnail_size    = apply_filters( 'woocommerce_gallery_thumbnail_size', array( $gallery_thumbnail['width'], $gallery_thumbnail['height'] ) );
+		$image_size        = apply_filters( 'woocommerce_gallery_image_size', $size );
+		$full_size         = apply_filters( 'woocommerce_gallery_full_size', apply_filters( 'woocommerce_product_thumbnails_large_size', 'full' ) );
+		$thumbnail_src     = wp_get_attachment_image_src( $attachment_id, $thumbnail_size );
+		$full_src          = wp_get_attachment_image_src( $attachment_id, $full_size );
+		$alt_text          = trim( wp_strip_all_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) );
 
-    $image_wrapper_class = $main_image ? 'slide first' : 'slide';
+		if ( empty( $full_src ) ) {
+			return '';
+		}
 
-    return '<div data-thumb="' . esc_url( $thumbnail_src[0] ) . '" class="woocommerce-product-gallery__image '.$image_wrapper_class.'"><a href="' . esc_url( $full_src[0] ) . '">' . $image . '</a></div>';
-  }
+		$image = wp_get_attachment_image(
+			$attachment_id,
+			$image_size,
+			false,
+			apply_filters(
+				'woocommerce_gallery_image_html_attachment_image_params',
+				array(
+					'title'                   => _wp_specialchars( get_post_field( 'post_title', $attachment_id ), ENT_QUOTES, 'UTF-8', true ),
+					'data-caption'            => _wp_specialchars( get_post_field( 'post_excerpt', $attachment_id ), ENT_QUOTES, 'UTF-8', true ),
+					'data-src'                => esc_url( $full_src[0] ),
+					'data-large_image'        => esc_url( $full_src[0] ),
+					'data-large_image_width'  => esc_attr( $full_src[1] ),
+					'data-large_image_height' => esc_attr( $full_src[2] ),
+					'class'                   => esc_attr( $main_image ? 'wp-post-image skip-lazy' : 'skip-lazy' ), // skip-lazy, blacklist for Jetpack's lazy load.
+				),
+				$attachment_id,
+				$image_size,
+				$main_image
+			)
+		);
+
+		$image_wrapper_class = $main_image ? 'slide first' : 'slide';
+
+		return '<div data-thumb="' . esc_url( $thumbnail_src[0] ) . '" data-thumb-alt="' . esc_attr( $alt_text ) . '" class="woocommerce-product-gallery__image ' . $image_wrapper_class . '"><a href="' . esc_url( $full_src[0] ) . '">' . $image . '</a></div>';
+	}
 }
 
 /* Move demo store notice to top. */
@@ -539,12 +614,14 @@ function flatsome_get_payment_icons_list() {
 		'paypal'          => __( 'PayPal', 'flatsome-admin' ),
 		'paypal-2'        => __( 'PayPal 2', 'flatsome-admin' ),
 		'paysafe'         => __( 'PaySafe', 'flatsome-admin' ),
+		'paysera'         => __( 'Paysera', 'flatsome-admin' ),
 		'payshop'         => __( 'PayShop', 'flatsome-admin' ),
 		'paytm'           => __( 'Paytm', 'flatsome-admin' ),
 		'payu'            => __( 'PayU', 'flatsome-admin' ),
 		'postepay'        => __( 'Postepay', 'flatsome-admin' ),
 		'quick'           => __( 'Quick', 'flatsome-admin' ),
 		'rechung'         => __( 'Rechung', 'flatsome-admin' ),
+		'revolut'         => __( 'Revolut', 'flatsome-admin' ),
 		'ripple'          => __( 'Ripple', 'flatsome-admin' ),
 		'rupay'           => __( 'RuPay', 'flatsome-admin' ),
 		'sage'            => __( 'Sage', 'flatsome-admin' ),
@@ -568,3 +645,73 @@ function flatsome_get_payment_icons_list() {
 		'wirecard'        => __( 'Wirecard', 'flatsome-admin' ),
 	) );
 }
+
+if ( flatsome_is_mini_cart_reveal() ) {
+	/**
+	* Adds a span tag with the "added-to-cart" class to Add to Cart notice to trigger auto reveal mini cart.
+	*
+	* @param  string $message    Default WooCommerce added to cart notice.
+	* @param  int    $product_id Product id.
+	* @return string             The modified message.
+	*/
+	add_filter( 'wc_add_to_cart_message_html', function ( $message ) {
+		$message .= '<span class="added-to-cart" data-timer=""></span>';
+
+		return $message;
+	});
+}
+
+/**
+ * Get HTML for ratings.
+ *
+ * @see wc_get_rating_html()
+ */
+function flatsome_get_rating_html( $rating, $count = 0, $single_product = false ) {
+	global $product;
+	$review_count = $product->get_review_count();
+	$label        = sprintf( __( 'Rated %s out of 5', 'woocommerce' ), $rating ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment
+	$html         = '';
+
+	if ( $rating > 0 ) {
+		if ( $single_product ) {
+			$style = get_theme_mod( 'product_info_review_count_style', 'inline' );
+			// Default to 'simple' when review count visibility is disabled.
+			$style = get_theme_mod( 'product_info_review_count' ) ? $style : 'simple';
+
+			switch ( $style ) {
+				case 'tooltip':
+					$title = sprintf( _n( '%s customer review', '%s customer reviews', $review_count, 'woocommerce' ), $review_count ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment
+					$html  = '<a href="#reviews" class="woocommerce-review-link" rel="nofollow">';
+					$html .= '<div class="star-rating tooltip" role="img" aria-label="' . esc_attr( $label ) . '" title="' . esc_attr( $title ) . '">';
+					$html .= wc_get_star_rating_html( $rating, $count );
+					$html .= '</div>';
+					$html .= '</a>';
+					break;
+				case 'inline':
+					$html  = '<div class="star-rating star-rating--inline" role="img" aria-label="' . esc_attr( $label ) . '">';
+					$html .= wc_get_star_rating_html( $rating, $count );
+					$html .= '</div>';
+					break;
+				case 'stacked':
+					$html  = '<div class="star-rating" role="img" aria-label="' . esc_attr( $label ) . '">';
+					$html .= wc_get_star_rating_html( $rating, $count );
+					$html .= '</div>';
+					break;
+				case 'simple':
+					$html  = '<a href="#reviews" class="woocommerce-review-link" rel="nofollow">';
+					$html .= '<div class="star-rating" role="img" aria-label="' . esc_attr( $label ) . '">';
+					$html .= wc_get_star_rating_html( $rating, $count );
+					$html .= '</div>';
+					$html .= '</a>';
+					break;
+			}
+		} else {
+			$html  = '<div class="star-rating star-rating--inline" role="img" aria-label="' . esc_attr( $label ) . '">';
+			$html .= wc_get_star_rating_html( $rating, $count );
+			$html .= '</div>';
+		}
+	}
+
+	return apply_filters( 'woocommerce_product_get_rating_html', $html, $rating, $count );
+}
+

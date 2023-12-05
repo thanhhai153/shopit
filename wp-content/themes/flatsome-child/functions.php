@@ -315,4 +315,6 @@ function redirect_to_checkout($redirect_url)
   return $redirect_url;
 }
 
+// woo bulded 
+add_filter( 'woosb_allow_unpurchasable_qty', '__return_true' );
 

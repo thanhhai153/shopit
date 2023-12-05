@@ -1,10 +1,64 @@
 <?php
 
 /**
+ * Get the Flatsome instance.
+ *
+ * @return Flatsome
+ */
+function flatsome() {
+	return Flatsome::instance();
+}
+
+/**
  * Get the Flatsome Envato instance.
  */
 function flatsome_envato() {
-	return Flatsome_Envato::instance();
+	return Flatsome_Envato::get_instance();
+}
+
+/**
+ * Register a webpack bundle.
+ *
+ * @param string $handle       Script handle name.
+ * @param string $entrypoint   The entrypoint name.
+ * @param array  $dependencies Extra dependencies.
+ * @return void
+ */
+function flatsome_register_asset( $handle, $entrypoint, $dependencies = array() ) {
+	$filename     = "js/$entrypoint.js";
+	$theme        = wp_get_theme( get_template() );
+	$version      = $theme->get( 'Version' );
+	$template_dir = get_template_directory();
+	$template_uri = get_template_directory_uri();
+	$assets_path  = "$template_dir/assets/assets.php";
+	$script_url   = "$template_uri/assets/$filename";
+
+	$assets = file_exists( $assets_path ) ? require $assets_path : array();
+
+	$script_asset = isset( $assets[ $filename ] )
+		? $assets[ $filename ]
+		: array( 'dependencies' => array(), 'version' => $version );
+
+	wp_register_script(
+		$handle,
+		$script_url,
+		array_merge( $script_asset['dependencies'], $dependencies ),
+		$script_asset['version'],
+		true
+	);
+}
+
+/**
+ * Enqueues a webpack bundle.
+ *
+ * @param string $handle       Script handle name.
+ * @param string $entrypoint   The entrypoint name.
+ * @param array  $dependencies Extra dependencies.
+ * @return void
+ */
+function flatsome_enqueue_asset( $handle, $entrypoint, $dependencies = array() ) {
+	flatsome_register_asset( $handle, $entrypoint, $dependencies );
+	wp_enqueue_script( $handle );
 }
 
 /**
@@ -130,7 +184,7 @@ function flatsome_facebook_accounts() {
   $theme_mod = get_theme_mod( 'facebook_accounts', array() );
 
   return array_filter( $theme_mod, function ( $account ) {
-    return ! empty( $account );
+    return ! empty( $account ) && is_array( $account );
   } );
 }
 
@@ -142,7 +196,7 @@ function flatsome_facebook_accounts() {
  * @return string
  */
 function flatsome_facebook_api_version() {
-  return 'v8.0';
+  return 'v14.0';
 }
 
 // Get block id by ID or slug.
@@ -211,6 +265,39 @@ function flatsome_get_block_list_by_id( $args = '' ) {
 }
 
 /**
+ * Retrieves a page given its title.
+ *
+ * @param string       $page_title Page title.
+ * @param string       $output     Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                                 correspond to a WP_Post object, an associative array, or a numeric array,
+ *                                 respectively. Default OBJECT.
+ * @param string|array $post_type  Optional. Post type or array of post types. Default 'page'.
+ *
+ * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
+ */
+function flatsome_get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
+	$args  = array(
+		'title'                  => $page_title,
+		'post_type'              => $post_type,
+		'post_status'            => get_post_stati(),
+		'posts_per_page'         => 1,
+		'update_post_term_cache' => false,
+		'update_post_meta_cache' => false,
+		'no_found_rows'          => true,
+		'orderby'                => 'post_date ID',
+		'order'                  => 'ASC',
+	);
+	$query = new WP_Query( $args );
+	$pages = $query->posts;
+
+	if ( empty( $pages ) ) {
+		return null;
+	}
+
+	return get_post( $pages[0], $output );
+}
+
+/**
  * Calls a shortcode function by its tag name.
  *
  * @param string $tag     The shortcode of the function to be called.
@@ -220,7 +307,6 @@ function flatsome_get_block_list_by_id( $args = '' ) {
  * @return bool|string If a shortcode tag doesn't exist => false, if exists => the result of the shortcode.
  */
 function flatsome_apply_shortcode( $tag, $atts = array(), $content = null ) {
-
 	global $shortcode_tags;
 
 	if ( ! isset( $shortcode_tags[ $tag ] ) ) return false;
@@ -235,13 +321,107 @@ function flatsome_apply_shortcode( $tag, $atts = array(), $content = null ) {
  * @param int    $visible_chars How many characters to show.
  * @return string
  */
-function flatsome_hide_chars( $string, $visible_chars = 8 ) {
+function flatsome_hide_chars( $string, $visible_chars = 4 ) {
 	if ( ! is_string( $string ) ) {
 		$string = '';
 	}
 	if ( strlen( $string ) <= $visible_chars ) {
 		$visible_chars = strlen( $string ) - 2;
 	}
-	$hidden_chars = strlen( $string ) - $visible_chars;
-	return substr( $string, 0, $visible_chars ) . str_repeat( '•', $hidden_chars );
+
+	$chars = str_split( $string );
+	$end   = strlen( $string ) - $visible_chars;
+
+	for ( $i = $visible_chars; $i < $end; $i++ ) {
+		if ( $chars[ $i ] === '-' ) continue;
+		$chars[ $i ] = '*';
+	}
+
+	return implode( '', $chars );
+}
+
+/**
+ * Normalizes the theme directory name.
+ *
+ * @param string $slug Optional theme slug.
+ * @return string
+ */
+function flatsome_theme_key( $slug = null ) {
+	if ( empty( $slug ) ) {
+		$slug = basename( get_template_directory() );
+	}
+
+	$slug = trim( $slug );
+	$slug = preg_replace( '/[,.\s]+/', '-', $slug );
+	$slug = strtolower( $slug );
+
+	return $slug;
+}
+
+/**
+ * Callback to sort on priority.
+ *
+ * @param int $a First item.
+ * @param int $b Second item.
+ *
+ * @return bool
+ */
+function flatsome_sort_on_priority( $a, $b ) {
+	if ( ! isset( $a['priority'], $b['priority'] ) ) {
+		return - 1;
+	}
+
+	if ( $a['priority'] === $b['priority'] ) {
+		return 0;
+	}
+
+	return $a['priority'] < $b['priority'] ? - 1 : 1;
+}
+
+/**
+ * Clean variables using sanitize_text_field. Arrays are cleaned recursively.
+ * Non-scalar values are ignored.
+ *
+ * @param string|array $data Data to sanitize.
+ *
+ * @return string|array
+ * @see wc_clean()
+ */
+function flatsome_clean( $data ) {
+	if ( is_array( $data ) ) {
+		return array_map( 'flatsome_clean', $data );
+	} else {
+		return is_scalar( $data ) ? sanitize_text_field( $data ) : $data;
+	}
+}
+
+/**
+ * Check if support is expired.
+ *
+ * @return bool
+ */
+function flatsome_is_support_expired() {
+	// _deprecated_function( __FUNCTION__, '3.14' );
+	return true;
+}
+
+/**
+ * Check if support time is invalid.
+ *
+ * @param string $support_ends Support end timestamp.
+ *
+ * @return bool True if invalid false otherwise.
+ */
+function flatsome_is_invalid_support_time( $support_ends ) {
+	// _deprecated_function( __FUNCTION__, '3.14' );
+	return false;
+}
+
+/**
+ * Checks whether theme is registered.
+ *
+ * @return bool
+ */
+function flatsome_is_theme_enabled() {
+	return flatsome_envato()->registration->is_registered();
 }

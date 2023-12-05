@@ -15,6 +15,11 @@ function ux_list_products( $args ) {
 			$show = $options['show'];
 		}
 
+		$page_number = '1';
+		if ( isset( $options['page_number'] ) ) {
+			$page_number = $options['page_number'];
+		}
+
 		$orderby = 'date';
 		$order   = 'desc';
 		if ( isset( $options['orderby'] ) ) {
@@ -27,12 +32,19 @@ function ux_list_products( $args ) {
 			$order = 'asc';
 		}
 
-		$tags = '';
+		$tags = array();
 		if ( isset( $options['tags'] ) ) {
-			if ( is_numeric( $options['tags'] ) ) {
-				$options['tags'] = get_term( $options['tags'] )->slug;
-			}
-			$tags = $options['tags'];
+			$_tags = array_filter( array_map( 'trim', explode( ',', $options['tags'] ) ) );
+			$tags  = array_map( function ( $tag ) {
+				if ( is_numeric( $tag ) ) {
+					$term = get_term( $tag );
+					if ( $term instanceof WP_Term ) {
+						return $term->slug;
+					}
+				}
+
+				return $tag;
+			}, $_tags );
 		}
 
 		$offset = '';
@@ -47,7 +59,7 @@ function ux_list_products( $args ) {
 		'posts_per_page'      => $number,
 		'post_status'         => 'publish',
 		'post_type'           => 'product',
-		'no_found_rows'       => 1,
+		'paged'               => $page_number,
 		'ignore_sticky_posts' => 1,
 		'order'               => $order,
 		'product_tag'         => $tags,

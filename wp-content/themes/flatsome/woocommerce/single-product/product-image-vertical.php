@@ -10,9 +10,10 @@
  * happen. When this occurs the version of the template file will be bumped and
  * the readme will list any important changes.
  *
- * @see     https://docs.woocommerce.com/document/template-structure/
- * @package WooCommerce/Templates
- * @version 3.5.1
+ * @see              https://docs.woocommerce.com/document/template-structure/
+ * @package          WooCommerce/Templates
+ * @version          7.8.0
+ * @flatsome-version 3.18.0
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -37,6 +38,10 @@ $slider_classes = array('product-gallery-slider','slider','slider-nav-small','mb
 $rtl = 'false';
 if(is_rtl()) $rtl = 'true';
 
+if ( get_theme_mod( 'product_gallery_slider_type' ) === 'fade' ) {
+	$slider_classes[] = 'slider-type-fade';
+}
+
 // Image Zoom
 if(get_theme_mod('product_zoom', 0)){
   $slider_classes[] = 'has-image-zoom';
@@ -55,7 +60,7 @@ if(get_theme_mod('product_zoom', 0)){
     <?php do_action('flatsome_product_image_tools_top'); ?>
   </div>
 
-  <figure class="woocommerce-product-gallery__wrapper <?php echo implode(' ', $slider_classes); ?>"
+  <div class="woocommerce-product-gallery__wrapper <?php echo implode(' ', $slider_classes); ?>"
         data-flickity-options='{
                 "cellAlign": "center",
                 "wrapAround": true,
@@ -82,7 +87,7 @@ if(get_theme_mod('product_zoom', 0)){
     do_action( 'woocommerce_product_thumbnails' );
 
     ?>
-  </figure>
+  </div>
 
   <div class="image-tools absolute bottom left z-3">
     <?php do_action('flatsome_product_image_tools_bottom'); ?>
@@ -95,6 +100,7 @@ if(get_theme_mod('product_zoom', 0)){
 
   $attachment_ids = $product->get_gallery_image_ids();
   $thumb_count = count($attachment_ids)+1;
+  $render_without_attachments = apply_filters( 'flatsome_single_product_thumbnails_render_without_attachments', false, $product, array( 'thumb_count' => $thumb_count ) );
 
   $rtl = 'false';
 
@@ -102,7 +108,7 @@ if(get_theme_mod('product_zoom', 0)){
 
   $thumb_cell_align = "left";
 
-  if ( $attachment_ids ) {
+  if ( $attachment_ids || $render_without_attachments ) {
 	  $loop              = 0;
 	  $image_size        = 'gallery_thumbnail';
 	  $gallery_class     = array( 'product-thumbnails', 'thumbnails' );
@@ -113,6 +119,7 @@ if(get_theme_mod('product_zoom', 0)){
     }
 
     $gallery_class[] = 'slider row row-small row-slider slider-nav-small small-columns-4';
+	$gallery_class   = apply_filters( 'flatsome_single_product_thumbnails_classes', $gallery_class );
 
     ?>
     <div class="col large-2 large-col-first vertical-thumbnails pb-0">
@@ -153,6 +160,11 @@ if(get_theme_mod('product_zoom', 0)){
         $classes = array( '' );
         $image_class = esc_attr( implode( ' ', $classes ) );
         $image =  wp_get_attachment_image_src( $attachment_id, apply_filters( 'woocommerce_gallery_thumbnail_size', 'woocommerce_'.$image_size ));
+
+		  if ( empty( $image ) ) {
+			  continue;
+		  }
+
         $image_alt = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
         $image = '<img src="'.$image[0].'" alt="'.$image_alt.'" width="'.$gallery_thumbnail['width'].'" height="'.$gallery_thumbnail['height'].'"  class="attachment-woocommerce_thumbnail" />';
 

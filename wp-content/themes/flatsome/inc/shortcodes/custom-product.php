@@ -2,22 +2,35 @@
 
 add_shortcode( 'ux_product_gallery', function ( $atts ) {
 	extract( shortcode_atts( array(
-		'style' => 'normal',
+		'style'       => 'normal',
+		'grid_layout' => '',
+		'slider_type' => '',
 	), $atts ) );
 
 	if ( ! is_product() ) {
 		return null;
 	}
 
-	add_filter( 'theme_mod_product_image_style', function ( $input ) use ( $style ) {
+	add_filter( 'theme_mod_product_image_style', function () use ( $style ) {
 		return $style;
 	} );
 
-	if ( $style == 'full-width' ) {
-		add_filter( 'theme_mod_product_layout', function ( $input ) use ( $style ) {
-			return 'gallery-wide';
-		} );
-	}
+	add_filter( 'theme_mod_product_layout', function () use ( $style ) {
+		$layout = '';
+
+		if ( $style === 'full-width' ) $layout = 'gallery-wide';
+		if ( $style === 'stacked' ) $layout = 'stacked-right';
+
+		return $layout;
+	} );
+
+	add_filter( 'theme_mod_product_gallery_grid_layout', function () use ( $grid_layout ) {
+		return $grid_layout;
+	} );
+
+	add_filter( 'theme_mod_product_gallery_slider_type', function () use ( $slider_type ) {
+		return $slider_type;
+	} );
 
 	ob_start();
 	wc_get_template_part( 'single-product/product-image' );

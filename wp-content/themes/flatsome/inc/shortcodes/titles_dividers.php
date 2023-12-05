@@ -3,22 +3,24 @@
 function title_shortcode( $atts, $content = null ){
   extract( shortcode_atts( array(
     '_id' => 'title-'.rand(),
-    'class' => '',
-    'visibility' => '',
     'text' => 'Lorem ipsum dolor sit amet...',
     'tag_name' => 'h3',
-    'sub_text' => '',
     'style' => 'normal',
     'size' => '100',
-    'link' => '',
-    'link_text' => '',
-    'target' => '',
     'margin_top' => '',
     'margin_bottom' => '',
-    'letter_case' => '',
     'color' => '',
     'width' => '',
     'icon' => '',
+    'link_text' => '',
+    'link' => '',
+    'target' => '',
+    'rel' => '',
+    'class' => '',
+    'visibility' => '',
+	// Deprecated.
+    'letter_case' => '',
+    'sub_text' => '',
   ), $atts ) );
 
   $classes = array('container', 'section-title-container');
@@ -26,8 +28,20 @@ function title_shortcode( $atts, $content = null ){
   if ( $visibility ) $classes[] = $visibility;
   $classes = implode(' ', $classes);
 
-  $link_output = '';
-  if($link) $link_output = '<a href="'.$link.'" target="'.$target.'">'.$link_text.get_flatsome_icon('icon-angle-right').'</a>';
+
+	$link_atts   = array(
+		'href'   => $link,
+		'target' => $target,
+		'rel'    => array( $rel ),
+	);
+	$link_output = '';
+	if ( $link_text ) {
+		$link_output = sprintf( '<a %s>%s%s</a>',
+			flatsome_html_atts( $link_atts ),
+			$link_text,
+			get_flatsome_icon( 'icon-angle-right' )
+		);
+	}
 
   $small_text = '';
   if($sub_text) $small_text = '<small class="sub-title">'.$atts['sub_text'].'</small>';
@@ -54,12 +68,8 @@ function title_shortcode( $atts, $content = null ){
   if($color){
     $css_args_title[] = array( 'attribute' => 'color', 'value' => $color);
   }
-  $date = '';
-  if(get_the_ID() == 361){
-    $date = date('d/m/Y');
-  }
 
-  return '<div class="'.$classes.'" '.get_shortcode_inline_css($css_args).'><'. $tag_name . ' class="section-title section-title-'.$style.'"><b></b><span class="section-title-main" '.get_shortcode_inline_css($css_args_title).'>'.$icon.$text.$small_text. ' ' . $date .'</span><b></b>'.$link_output.'</' . $tag_name .'></div>';
+  return '<div class="'.$classes.'" '.get_shortcode_inline_css($css_args).'><'. $tag_name . ' class="section-title section-title-'.$style.'"><b></b><span class="section-title-main" '.get_shortcode_inline_css($css_args_title).'>'.$icon.$text.$small_text.'</span><b></b>'.$link_output.'</' . $tag_name .'></div>';
 }
 add_shortcode('title', 'title_shortcode');
 

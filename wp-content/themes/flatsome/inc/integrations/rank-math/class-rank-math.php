@@ -3,18 +3,18 @@
  * Rank Math integration
  *
  * @author      UX Themes
- * @package     Flatsome/Integrations
+ * @package     Flatsome\Integrations
  * @since       3.12.0
  */
 
-namespace Flatsome\Inc\Integrations;
+namespace Flatsome\Integrations;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Class Rank_Math
  *
- * @package Flatsome\Inc\Integrations
+ * @package Flatsome\Integrations
  */
 class Rank_Math {
 
@@ -28,7 +28,7 @@ class Rank_Math {
 	/**
 	 * Rank_Math constructor.
 	 */
-	public function __construct() {
+	private function __construct() {
 		add_action( 'wp', [ $this, 'integrate' ] );
 	}
 
@@ -39,6 +39,7 @@ class Rank_Math {
 		// Primary term.
 		if ( get_theme_mod( 'rank_math_primary_term' ) ) {
 			add_filter( 'flatsome_woocommerce_shop_loop_category', [ $this, 'get_primary_term' ], 10, 2 );
+			add_filter( 'woocommerce_product_categories_widget_main_term', [ $this, 'make_primary_term_current_category' ] );
 		}
 		if ( get_theme_mod( 'rank_math_manages_product_layout_priority' ) ) {
 			add_filter( 'flatsome_product_block_primary_term_id', [ $this, 'get_primary_term_id' ], 10, 2 );
@@ -69,6 +70,28 @@ class Rank_Math {
 
 		if ( ! empty( $primary_term ) ) {
 			return $primary_term;
+		}
+
+		return $term;
+	}
+
+	/**
+	 * Make primary term the active term in category widget.
+
+	 * @param  \WP_Term $term WooCommerce main term object.
+	 *
+	 * @return \WP_Term Term object.
+	 */
+	public function make_primary_term_current_category( $term ) {
+		global $product;
+
+		$primary_term_id = $this->get_primary_term_id( false, $product );
+
+		if ( $primary_term_id ) {
+			$_term = get_term_by( 'id', $primary_term_id, 'product_cat' );
+			if ( $_term instanceof \WP_Term ) {
+				return $_term;
+			}
 		}
 
 		return $term;

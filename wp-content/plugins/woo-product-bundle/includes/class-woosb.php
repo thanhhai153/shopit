@@ -1882,8 +1882,7 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
 				$query_args = [
 					'is_woosb'       => true,
 					'post_type'      => 'product',
-					// 'post_status'    => [ 'publish', 'private' ],
-					'post_status'    => [ 'publish','protect', 'private' ],
+					'post_status'    => [ 'publish', 'private' ],
 					's'              => $keyword,
 					'posts_per_page' => WPCleverWoosb_Helper()->get_setting( 'search_limit', 10 )
 				];
@@ -1944,6 +1943,7 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
 			} else {
 				echo '<ul><span>' . sprintf( esc_html__( 'No results found for "%s"', 'woo-product-bundle' ), $keyword ) . '</span></ul>';
 			}
+
 			wp_die();
 		}
 
@@ -2102,6 +2102,12 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
 											if ( ! empty( $items ) ) {
 												foreach ( $items as $item ) {
 													if ( ! empty( $item['id'] ) ) {
+														if ( apply_filters( 'woosb_use_sku', false ) && ! empty( $item['sku'] ) ) {
+															if ( $new_id = WPCleverWoosb_Helper()->get_product_id_from_sku( $item['sku'] ) ) {
+																$item['id'] = $new_id;
+															}
+														}
+
 														$_product = wc_get_product( $item['id'] );
 
 														if ( ! $_product || in_array( $_product->get_type(), self::$types, true ) ) {
@@ -2881,7 +2887,10 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
 							}
 
 							if ( ! $product->is_in_stock() || ! $product->has_enough_stock( $item_qty ) || ! $product->is_purchasable() ) {
-								$item_qty   = 0;
+								if ( ! apply_filters( 'woosb_allow_unpurchasable_qty', false ) ) {
+									$item_qty = 0;
+								}
+
 								$item_class .= ' woosb-product-unpurchasable';
 							}
 
@@ -2947,7 +2956,7 @@ if ( ! class_exists( 'WPCleverWoosb' ) && class_exists( 'WC_Product' ) ) {
                                 </div>
 
 								<?php if ( $optional ) {
-									if ( $product->is_in_stock() && ( $product->is_type( 'variable' ) || $product->is_purchasable() ) ) {
+									if ( ( $product->is_in_stock() && ( $product->is_type( 'variable' ) || $product->is_purchasable() ) ) || apply_filters( 'woosb_allow_unpurchasable_qty', false ) ) {
 										echo '<div class="' . esc_attr( WPCleverWoosb_Helper()->get_setting( 'plus_minus', 'no' ) === 'yes' ? 'woosb-quantity woosb-quantity-plus-minus' : 'woosb-quantity' ) . '">';
 
 										if ( WPCleverWoosb_Helper()->get_setting( 'plus_minus', 'no' ) === 'yes' ) {

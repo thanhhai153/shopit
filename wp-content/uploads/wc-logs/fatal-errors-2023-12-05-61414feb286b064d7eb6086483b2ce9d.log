@@ -2,3 +2,16 @@
 
 2023-12-05T04:46:24+00:00 CRITICAL syntax error, unexpected token "<", expecting end of file in C:\laragon\www\shopit\wp-content\themes\flatsome\template-parts\header\header-wrapper.php on line 19
 
+2023-12-05T09:18:58+00:00 CRITICAL Uncaught Error: Class "Flatsome_Envato_Updater" not found in C:\laragon\www\shopit\wp-content\themes\flatsome\inc\classes\class-flatsome-envato.php:77
+Stack trace:
+#0 C:\laragon\www\shopit\wp-content\themes\flatsome\inc\classes\class-flatsome-envato.php(56): Flatsome_Envato->updater()
+#1 C:\laragon\www\shopit\wp-content\themes\flatsome\inc\functions\function-setup.php(10): Flatsome_Envato->init()
+#2 C:\laragon\www\shopit\wp-content\themes\flatsome\inc\init.php(46): require('C:\\laragon\\www\\...')
+#3 C:\laragon\www\shopit\wp-content\themes\flatsome\functions.php(10): require('C:\\laragon\\www\\...')
+#4 C:\laragon\www\shopit\wp-settings.php(611): include('C:\\laragon\\www\\...')
+#5 C:\laragon\www\shopit\wp-config.php(96): require_once('C:\\laragon\\www\\...')
+#6 C:\laragon\www\shopit\wp-load.php(50): require_once('C:\\laragon\\www\\...')
+#7 C:\laragon\www\shopit\wp-admin\admin-ajax.php(22): require_once('C:\\laragon\\www\\...')
+#8 {main}
+  thrown in C:\laragon\www\shopit\wp-content\themes\flatsome\inc\classes\class-flatsome-envato.php on line 77
+

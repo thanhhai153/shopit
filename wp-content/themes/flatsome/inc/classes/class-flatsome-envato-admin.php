@@ -34,25 +34,31 @@ final class Flatsome_Envato_Admin {
 	}
 
 	/**
-	 * Setup instance properties.
+	 * The Flatsome_Registration instance.
+	 *
+	 * @var Flatsome_Registration
 	 */
-	private function __construct() {}
+	private $registration = null;
 
 	/**
-	 * Register actions and filters.
+	 * Setup instance properties
+	 *
+	 * @param Flatsome_Envato $registration The Flatsome_Envato instance.
 	 */
-	public function init() {
+	public function __construct( $registration ) {
+		$this->registration = $registration;
+
 		add_action( 'admin_menu', array( $this, 'add_pages' ) );
 		add_action( 'current_screen', array( $this, 'render_version_info_iframe' ) );
-		add_action( 'admin_post_flatsome_envato_migrate', array( $this, 'ajax_delete_purchase_code' ) );
-		add_action( 'admin_post_flatsome_envato_register', array( $this, 'ajax_save_registration_form' ) );
+		add_action( 'admin_post_flatsome_envato_register', array( $this, 'save_registration_form' ) );
+		add_action( 'wp_ajax_flatsome_registration_dismiss_notice', array( $registration, 'dismiss_notice' ) );
 	}
 
 	/**
 	 * Add necessary admin pages.
 	 */
 	public function add_pages() {
-		add_submenu_page( null, '', '', 'manage_options', 'flatsome-version-info', '__return_empty_string' );
+		add_submenu_page( '', '', '', 'manage_options', 'flatsome-version-info', '__return_empty_string' );
 	}
 
 	/**
@@ -62,7 +68,6 @@ final class Flatsome_Envato_Admin {
 	 */
 	public function render_version_info_iframe( $screen ) {
 		if ( $screen->base === 'admin_page_flatsome-version-info' ) {
-			$url     = isset( $_GET['url'] ) ? wp_unslash( $_GET['url'] ) : '';
 			$version = isset( $_GET['version'] ) ? wp_unslash( $_GET['version'] ) : '';
 			include get_template_directory() . '/template-parts/admin/envato/version-info-iframe.php';
 			die;
@@ -78,20 +83,6 @@ final class Flatsome_Envato_Admin {
 		ob_start();
 		include get_template_directory() . '/template-parts/admin/envato/message-form.php';
 		return ob_get_clean();
-	}
-
-	/**
-	 * Clears the purchase code and errors.
-	 */
-	public function ajax_delete_purchase_code() {
-		check_admin_referer( 'flatsome_envato_migrate', 'flatsome_envato_migrate_nonce' );
-
-		$referer = wp_unslash( $_POST['_wp_http_referer'] );
-
-		$this->delete_wupdates_data();
-
-		wp_safe_redirect( $referer );
-		exit;
 	}
 
 	/**
@@ -114,106 +105,103 @@ final class Flatsome_Envato_Admin {
 	 * @return string
 	 */
 	public function render_registration_form( $args = array() ) {
-		$token         = flatsome_envato()->get_option( 'token' );
-		$is_confirmed  = flatsome_envato()->get_option( 'confirmed' );
-		$is_registered = flatsome_envato()->is_registered();
-		$errors        = flatsome_envato()->get_errors();
-		$args          = wp_parse_args( $args, array(
+		$registration = $this->registration;
+		$registered   = $registration->is_registered();
+		$verified     = $registration->is_verified();
+		$code         = $registration->get_code();
+		$issues       = $registration->get_errors();
+		$args         = wp_parse_args( $args, array(
+			'form'        => true,
 			'show_intro'  => true,
 			'show_terms'  => true,
 			'show_submit' => true,
 		) );
 
-		if ( $is_registered ) {
-			$token = flatsome_hide_chars( $token );
+		if ( $code ) {
+			$code = flatsome_hide_chars( $code );
+		} else {
+			$code      = get_transient( 'flatsome_purchase_code' );
+			$confirmed = (bool) get_transient( 'flatsome_registration_confirmed' );
 		}
 
+		$error = get_transient( 'flatsome_registration_error' );
+
+		if ( is_wp_error( $error ) ) {
+			$data    = $error->get_error_data();
+			$message = $error->get_error_message();
+
+			if ( isset( $data['retry-after'] ) ) {
+				$rate_limit       = (int) $data['retry-after'];
+				$time_left        = $rate_limit - time();
+				$time_left_format = $time_left < 3600 ? 'i:s' : 'H:i:s';
+				$time_left_string = human_readable_duration( gmdate( $time_left_format, $time_left ) );
+
+				// translators: %s: Time left.
+				$error = new WP_Error( 429, $message . ' ' . sprintf( __( 'Please try again in %s.', 'flatsome' ), $time_left_string ) );
+			}
+		}
+
+		delete_transient( 'flatsome_purchase_id' );
+		delete_transient( 'flatsome_purchase_code' );
+		delete_transient( 'flatsome_registration_confirmed' );
+		delete_transient( 'flatsome_registration_error' );
+
 		ob_start();
+
 		include get_template_directory() . '/template-parts/admin/envato/register-form.php';
+
 		return ob_get_clean();
 	}
 
 	/**
 	 * Saves the theme registration form.
 	 */
-	public function ajax_save_registration_form() {
+	public function save_registration_form() {
 		check_admin_referer( 'flatsome_envato_register', 'flatsome_envato_register_nonce' );
 
-		$token     = isset( $_POST['flatsome_envato_token'] ) ? wp_unslash( $_POST['flatsome_envato_token'] ) : '';
-		$confirmed = (bool) wp_unslash( $_POST['flatsome_envato_terms'] );
-		$referer   = wp_unslash( $_POST['_wp_http_referer'] );
+		if ( isset( $_POST['flatsome_register'] ) ) {
+			$code = isset( $_POST['flatsome_purchase_code'] )
+				? sanitize_text_field( wp_unslash( $_POST['flatsome_purchase_code'] ) )
+				: '';
 
-		if ( ! empty( $token ) ) {
-			$this->update_token( $token, $confirmed );
-		} else {
-			// Unregister theme if no token was provided.
-			flatsome_envato()->delete_options();
-			flatsome_envato()->set_errors( array() );
+			$purchase_id = isset( $_POST['flatsome_purchase_id'] )
+				? sanitize_text_field( wp_unslash( $_POST['flatsome_purchase_id'] ) )
+				: '';
+
+			$confirmed = isset( $_POST['flatsome_envato_terms'] )
+				? (bool) $_POST['flatsome_envato_terms']
+				: false;
+
+			set_transient( 'flatsome_purchase_code', $code, 120 );
+			set_transient( 'flatsome_purchase_id', $purchase_id, 120 );
+			set_transient( 'flatsome_registration_confirmed', $confirmed, 120 );
+
+			if ( ! $confirmed ) {
+				$result = new WP_Error( 403, __( 'You must agree to the Envato License Terms.', 'flatsome' ) );
+			} elseif ( $purchase_id ) {
+				$result = $this->registration->register( $purchase_id );
+			} else {
+				$result = $this->registration->register( $code );
+			}
+		} elseif ( isset( $_POST['flatsome_verify'] ) ) {
+			$code   = $this->registration->get_code();
+			$result = $this->registration->register( $code );
+		} elseif ( isset( $_POST['flatsome_unregister'] ) ) {
+			$result = $this->registration->unregister();
+
+			delete_option( 'flatsome_update_cache' );
 		}
+
+		if ( is_wp_error( $result ) ) {
+			set_transient( 'flatsome_registration_error', $result, 120 );
+		}
+
+		$referer = isset( $_POST['_wp_http_referer'] )
+			? esc_url_raw( wp_unslash( $_POST['_wp_http_referer'] ) )
+			: '';
 
 		wp_safe_redirect( $referer );
+
 		exit;
-	}
-
-	/**
-	 * Updates the token in the options.
-	 *
-	 * @param string $token     The new token.
-	 * @param bool   $confirmed Whether the user has confirmed the Envato License Terms.
-	 * @return void
-	 */
-	public function update_token( $token, $confirmed = false ) {
-		flatsome_envato()->set_option( 'token', $token );
-		flatsome_envato()->set_option( 'confirmed', (bool) $confirmed );
-
-		$result = flatsome_envato()->api()->whoami();
-		$theme  = flatsome_envato()->api()->get_flatsome();
-		$errors = array();
-
-		if ( ! $confirmed ) {
-			$errors[] = __( 'You must confirm the Envato License Terms.', 'flatsome' );
-		}
-
-		if ( strlen( $token ) === 36 && substr_count( $token, '-' ) === 4 ) {
-			$errors[] = sprintf(
-				/* translators: 1: Create token URL */
-				__( 'The provided value seems to be a purchase code. An Envato token is required to register. <a href="%s" target="_blank">Generate a token here</a>.', 'flatsome' ),
-				esc_url( flatsome_envato()->get_create_token_url() )
-			);
-		} elseif ( is_wp_error( $result ) ) {
-			// Fail if the token was invalid or an HTTP error occurred.
-			$errors[] = $result->get_error_message();
-		} elseif ( is_wp_error( $theme ) ) {
-			// Fail if the token dosn't have Flatsome as one if it's purchased items.
-			$errors[] = $theme->get_error_message();
-		}
-
-		if ( empty( $errors ) ) {
-			// Delete all WP Updates data if the token is valid.
-			$this->delete_wupdates_data();
-		}
-
-		flatsome_envato()->set_option( 'is_valid', empty( $errors ) );
-		flatsome_envato()->set_errors( $errors );
-	}
-
-	/**
-	 * Delete data associated with WP Updates.
-	 *
-	 * @return void
-	 */
-	protected function delete_wupdates_data() {
-		$slug = flatsome_theme_key();
-
-		delete_option( $slug . '_wup_buyer' );
-		delete_option( $slug . '_wup_sold_at' );
-		delete_option( $slug . '_wup_purchase_code' );
-		delete_option( $slug . '_wup_supported_until' );
-		delete_option( $slug . '_wup_errors' );
-
-		// Delete `update_themes` transients in case
-		// there are pending updates from wupdates.
-		delete_site_transient( 'update_themes' );
-		delete_transient( 'update_themes' );
 	}
 }

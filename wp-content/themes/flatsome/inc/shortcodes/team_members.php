@@ -1,7 +1,7 @@
 <?php
 
-function flatsome_team_member($atts, $content = null){
-  extract( shortcode_atts( array(
+function flatsome_team_member($atts, $content = null, $tag = ''){
+  extract( $atts = shortcode_atts( array(
       '_id' => null,
       'class' => '',
       'visibility' => '',
@@ -9,16 +9,23 @@ function flatsome_team_member($atts, $content = null){
       'name' => '',
       'title' => '',
       'icon_style' => 'outline',
-      'twitter' => '',
       'facebook' => '',
-      'pinterest' => '',
       'instagram' => '',
       'tiktok' => '',
       'snapchat' => '',
-      'youtube' => '',
+      'x' => '',
+      'twitter' => '',
       'email' => '',
       'phone' => '',
+      'pinterest' => '',
       'linkedin' => '',
+      'youtube' => '',
+      'flickr' => '',
+      'px500' => '',
+	  'vkontakte'  => '',
+      'telegram' => '',
+	  'twitch' => '',
+      'discord' => '',
       'style' => '',
       'depth' => '',
       'depth_hover' => '',
@@ -41,7 +48,7 @@ function flatsome_team_member($atts, $content = null){
       'image_hover' => '',
       'image_hover_alt' => '',
       'image_overlay' => '',
-  ), $atts ) );
+  ), $atts, $tag ) );
 
 
     ob_start();
@@ -109,7 +116,25 @@ function flatsome_team_member($atts, $content = null){
         array( 'attribute' => 'padding-top', 'value' => $image_height),
     );
 
-	$has_custom_social_link = $facebook || $instagram || $tiktok || $twitter || $youtube || $email || $phone || $pinterest || $linkedin || $snapchat;
+	$social_links = apply_filters( "flatsome_shortcode_{$tag}_social_links", array(
+		'facebook'  => $facebook,
+		'instagram' => $instagram,
+		'tiktok'    => $tiktok,
+		'snapchat'  => $snapchat,
+		'x'         => $x,
+		'twitter'   => $twitter,
+		'email'     => $email,
+		'phone'     => $phone,
+		'pinterest' => $pinterest,
+		'linkedin'  => $linkedin,
+		'youtube'   => $youtube,
+		'flickr'    => $flickr,
+		'px500'     => $px500,
+		'vkontakte' => $vkontakte,
+		'telegram'  => $telegram,
+		'twitch'    => $twitch,
+		'discord'   => $discord,
+	), $atts );
     ?>
     <div class="box has-hover <?php echo implode(' ', $classes_box); ?>" <?php echo $animate; ?>>
 
@@ -130,17 +155,19 @@ function flatsome_team_member($atts, $content = null){
                       <?php echo $title; ?>
                     </span>
                   </h4>
-                 <?php if( $has_custom_social_link ) echo do_shortcode('[follow style="'.$icon_style.'" facebook="'.$facebook.'" twitter="'.$twitter.'" snapchat="'.$snapchat.'" email="'.$email.'" phone="'.$phone.'" pinterest="'.$pinterest.'" youtube="'.$youtube.'" instagram="'.$instagram.'" tiktok="'.$tiktok.'" linkedin="'.$linkedin.'"]'); ?>
-                 <?php if($style  !== 'overlay' && $style  !== 'shade') echo do_shortcode($content); ?>
+					<?php if ( count( array_filter( $social_links ) ) > 0 ) echo flatsome_apply_shortcode( 'follow', array_merge( array( 'style' => $icon_style ), $social_links ) );
+					if($style  !== 'overlay' && $style  !== 'shade') echo do_shortcode($content);
+					?>
                 </div>
           </div>
     </div>
 
-    <?php if($style  == 'overlay' || $style  == 'shade') echo '<div class="team-member-content pt-half text-'.$text_align.'">'.$content.'</div>'; ?>
+	<?php if ( $style == 'overlay' || $style == 'shade' ) echo '<div class="team-member-content pt-half text-' . $text_align . '">' . do_shortcode( $content ) . '</div>'; ?>
 
     <?php
     $content = ob_get_contents();
     ob_end_clean();
     return $content;
-};
+}
+
 add_shortcode('team_member','flatsome_team_member');
