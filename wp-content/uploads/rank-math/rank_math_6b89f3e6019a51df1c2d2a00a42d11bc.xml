@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type="text/xsl" href="//shopit.haiat/main-sitemap.xsl"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+	<sitemap>
+		<loc>http://shopit.haiat/post-sitemap.xml</loc>
+		<lastmod>2023-11-20T17:58:47+00:00</lastmod>
+	</sitemap>
+	<sitemap>
+		<loc>http://shopit.haiat/page-sitemap.xml</loc>
+		<lastmod>2023-12-06T02:51:45+00:00</lastmod>
+	</sitemap>
+	<sitemap>
+		<loc>http://shopit.haiat/blocks-sitemap.xml</loc>
+		<lastmod>2023-12-06T03:32:44+00:00</lastmod>
+	</sitemap>
+	<sitemap>
+		<loc>http://shopit.haiat/product-sitemap.xml</loc>
+		<lastmod>2023-12-06T04:35:46+00:00</lastmod>
+	</sitemap>
+	<sitemap>
+		<loc>http://shopit.haiat/woo_product_builder-sitemap.xml</loc>
+		<lastmod>2023-11-25T04:12:44+00:00</lastmod>
+	</sitemap>
+</sitemapindex>

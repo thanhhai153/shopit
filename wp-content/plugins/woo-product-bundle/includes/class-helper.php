@@ -24,7 +24,7 @@ if ( ! class_exists( 'WPCleverWoosb_Helper' ) ) {
 
 		public static function round_price( $price ) {
 			if ( ! apply_filters( 'woosb_ignore_round_price', false ) ) {
-				$price = round( $price, (int) apply_filters( 'woosb_price_decimals', wc_get_price_decimals() ) );
+				$price = round( (float) $price, (int) apply_filters( 'woosb_price_decimals', wc_get_price_decimals() ) );
 			}
 
 			return $price;
@@ -82,6 +82,20 @@ if ( ! class_exists( 'WPCleverWoosb_Helper' ) ) {
 			}
 
 			return $arr;
+		}
+
+		public static function get_product_id_from_sku( $sku, $old_id = 0 ) {
+			if ( $old_id && ( $parent_id = wp_get_post_parent_id( $old_id ) ) && ( $parent = wc_get_product( $parent_id ) ) ) {
+				$parent_sku = $parent->get_sku();
+			} else {
+				$parent_sku = '';
+			}
+
+			if ( ! empty( $sku ) && ( $sku !== $parent_sku ) && ( $new_id = wc_get_product_id_by_sku( $sku ) ) ) {
+				return $new_id;
+			}
+
+			return 0;
 		}
 
 		public static function clean_ids( $ids ) {

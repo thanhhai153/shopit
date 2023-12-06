@@ -152,9 +152,28 @@ span.amount {
         box-shadow: rgba(31, 38, 67, 0.1) 0px 3px 25px 0px;
         top: 39px;
     }
+    .nav > li > a > i.icon-menu {
+        font-size: 1em !important;
+        height: 20px;
+        width: 20px;
+    }
 }
-
-
+@media screen and (max-width: 549px){
+    .header-main {
+        height: 70px !important;
+    }   
+    .medium-logo-center .flex-left {
+        flex: 0 1;
+    }
+}
+@media screen and (max-width: 768px){
+    #logo {
+        width: 95px !important;
+    }
+}
+.small-6 {
+    max-width: 25%;
+}
 .section-title-normal span {
     margin-right: 15px;
     padding-bottom: 0;
@@ -258,4 +277,41 @@ span.shopit-show-cats li a {
 p.in-stock{
     color: #ff0000 !important;
     font-size: 16px;
+}
+
+.col-inner a svg {
+    background: #0098d9;
+    fill: #fff;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+.nav_mobile{
+    text-align: center;
+}
+
+#footer .ux-menu-link__link >span:hover{
+    color: #0098d9;
+}
+#footer .ux-menu-link__link >span::after{
+    content: "";
+    height: 1px;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    background: #0098d9;
+    width: 0;
+    -webkit-transition: width 0.4s ease;
+    transition: width 0.4s ease;
 }
